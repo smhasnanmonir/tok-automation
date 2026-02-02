@@ -1,0 +1,133 @@
+name: PDF Comparison Automation
+
+on:
+  push:
+    paths:
+      - 'WholeSalePriceTrack/pdfs/**/*.pdf'  # Triggers when PDF files are added/changed in pdfs folder
+  workflow_dispatch:  # Allows manual trigger
+
+jobs:
+  compare-pdfs:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history to compare with previous versions
+          lfs: true       # Enable LFS if valid
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pdfplumber pandas pypdf
+      
+      - name: Find PDF files
+        id: find_pdfs
+        run: |
+          echo "================================"
+          echo "Finding PDFs to compare..."
+          echo "================================"
+          
+          # Find all PDF files in WholeSalePriceTrack/pdfs folder, sorted by Git commit date (newest first)
+          # We use git log because file system timestamps are unreliable in CI (reset at checkout)
+          # 'git log -1 --format=%at' gets the last commit timestamp for the file
+          pdf_files=$(find WholeSalePriceTrack/pdfs -name "*.pdf" -type f | while IFS= read -r f; do echo "$(git log -1 --format='%at' "$f") $f"; done | sort -rn | cut -d' ' -f2-)
+          
+          # Count total PDFs
+          total_pdfs=$(echo "$pdf_files" | wc -l)
+          echo "Total PDFs found: $total_pdfs"
+          
+          # Show all PDFs with their timestamps (for debugging)
+          echo ""
+          echo "All PDFs (sorted by last commit time, newest first):"
+          find WholeSalePriceTrack/pdfs -name "*.pdf" -type f | while IFS= read -r f; do echo "$(git log -1 --format='%ad' --date=iso "$f") $f"; done | sort -r
+          echo ""
+          
+          if [ "$total_pdfs" -lt 2 ]; then
+            echo "ERROR: Need at least 2 PDFs to compare"
+            echo "Found only $total_pdfs PDF(s)"
+            exit 1
+          fi
+          
+          # Get the two most recent PDFs
+          # 1st line = newest (just uploaded) = NEW PDF
+          # 2nd line = second newest = OLD PDF
+          new_pdf=$(echo "$pdf_files" | sed -n '1p')
+          old_pdf=$(echo "$pdf_files" | sed -n '2p')
+          
+          echo "================================"
+          echo "Comparison Plan:"
+          echo "================================"
+          echo "OLD PDF (2nd newest): $old_pdf"
+          echo "NEW PDF (1st newest): $new_pdf"
+          echo "================================"
+          
+          # Export for next steps
+          echo "new_pdf=$new_pdf" >> $GITHUB_OUTPUT
+          echo "old_pdf=$old_pdf" >> $GITHUB_OUTPUT
+      
+      - name: Run PDF comparison
+        run: |
+          python WholeSalePriceTrack/comparepdfs/compare_pdfs.py "${{ steps.find_pdfs.outputs.old_pdf }}" "${{ steps.find_pdfs.outputs.new_pdf }}"
+      
+      - name: Generate timestamp
+        id: timestamp
+        run: echo "timestamp=$(date +'%Y-%m-%d_%H-%M-%S')" >> $GITHUB_OUTPUT
+      
+      - name: Commit comparison results
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          
+          # Add the comparison result
+          git add results/comparison_result.json
+          
+          # Add a summary file if it exists
+          if [ -f results/comparison_summary.txt ]; then
+            git add results/comparison_summary.txt
+          fi
+          
+          # Commit with timestamp
+          git commit -m "Update comparison results - ${{ steps.timestamp.output.timestamp }}" || echo "No changes to commit"
+          
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
+      
+      - name: Create summary comment
+        if: github.event_name == 'push'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const comparison = JSON.parse(fs.readFileSync('results/comparison_result.json', 'utf8'));
+            
+            const summary = `
+            ## 📊 PDF Comparison Results
+            
+            **Old PDF:** \`${{ steps.find_pdfs.outputs.old_pdf }}\`
+            **New PDF:** \`${{ steps.find_pdfs.outputs.new_pdf }}\`
+            **Date:** ${comparison.metadata.comparison_date}
+            
+            ### Summary
+            - 📦 **Newly Added:** ${comparison.metadata.summary.newly_added_count} products
+            - 📈 **Price Increased:** ${comparison.metadata.summary.price_increased_count} products
+            - 📉 **Price Decreased:** ${comparison.metadata.summary.price_decreased_count} products
+            - ❌ **Stock Out:** ${comparison.metadata.summary.stock_out_count} products
+            - ✅ **Unchanged:** ${comparison.metadata.summary.unchanged_count} products
+            
+            **Total Products:** ${comparison.metadata.new_pdf_total_products}
+            `;
+            
+            // Add as workflow summary
+            await core.summary
+              .addRaw(summary)
+              .write();
