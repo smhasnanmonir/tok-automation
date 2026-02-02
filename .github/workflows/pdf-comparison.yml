@@ -6,6 +6,9 @@ on:
       - 'WholeSalePriceTrack/pdfs/**/*.pdf'  # Triggers when PDF files are added/changed in pdfs folder
   workflow_dispatch:  # Allows manual trigger
 
+permissions:
+  contents: write
+
 jobs:
   compare-pdfs:
     runs-on: ubuntu-latest
