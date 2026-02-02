@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TOK Prices Tracker</title>
+    <link rel="stylesheet" href="index.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <h1>
+                    <span>📑</span> TOK Prices Tracker
+                </h1>
+                <div class="last-updated" id="lastUpdated">Loading date...</div>
+            </div>
+        </header>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Fetching latest comparison data...</p>
+        </div>
+
+        <main id="dashboard" style="display: none;">
+            <!-- Comparison Info -->
+            <div class="comparison-info">
+                <div class="pdf-badges">
+                    <div class="pdf-badge">
+                        <span>🔴 Old:</span>
+                        <strong id="oldPdfName">...</strong>
+                    </div>
+                    <div class="pdf-badge">
+                        <span>🟢 New:</span>
+                        <strong id="newPdfName">...</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card new">
+                    <div class="stat-title">Newly Added 📦</div>
+                    <div class="stat-value" id="countNew">0</div>
+                </div>
+                <div class="stat-card increase">
+                    <div class="stat-title">Price Increased 📈</div>
+                    <div class="stat-value" id="countIncrease">0</div>
+                </div>
+                <div class="stat-card decrease">
+                    <div class="stat-title">Price Decreased 📉</div>
+                    <div class="stat-value" id="countDecrease">0</div>
+                </div>
+                <div class="stat-card stockout">
+                    <div class="stat-title">Stock Out ❌</div>
+                    <div class="stat-value" id="countStockout">0</div>
+                </div>
+            </div>
+
+            <!-- Newly Added Section -->
+            <section class="section" id="sectionNew">
+                <div class="section-header">
+                    <h2>Newly Added Products</h2>
+                    <span class="count-bubble" id="bubbleNew">0</span>
+                </div>
+                <div class="product-grid" id="gridNew"></div>
+            </section>
+
+            <!-- Price Changes Section -->
+            <section class="section">
+                <div class="section-header">
+                    <h2>Price Changes</h2>
+                </div>
+
+                <h3 style="margin-bottom: 1rem; color: var(--danger);">Price Increases 📈</h3>
+                <div class="product-grid" id="gridIncrease" style="margin-bottom: 2rem;"></div>
+
+                <h3 style="margin-bottom: 1rem; color: var(--success);">Price Decreases 📉</h3>
+                <div class="product-grid" id="gridDecrease"></div>
+            </section>
+
+            <!-- Stock Out Section -->
+            <section class="section">
+                <div class="section-header">
+                    <h2>Stock Out Products</h2>
+                    <span class="count-bubble" id="bubbleStockout">0</span>
+                </div>
+                <div class="product-grid" id="gridStockout"></div>
+            </section>
+        </main>
+
+        <footer>
+            <p style="text-align: center; color: var(--secondary); font-size: 0.875rem;">
+                Generated automatically by TOK Automation System
+            </p>
+        </footer>
+    </div>
+
+    <script src="index.js"></script>
+</body>
+
+</html>
