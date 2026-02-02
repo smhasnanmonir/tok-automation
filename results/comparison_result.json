@@ -1,0 +1,517 @@
+{
+  "metadata": {
+    "old_pdf": "WholeSalePriceTrack/pdfs/Wholesale Price ( 25-01-2026 ).pdf",
+    "new_pdf": "WholeSalePriceTrack/pdfs/Wholesale Price ( 31-01-2026 ).pdf",
+    "comparison_date": "2026-02-02T08:52:56.324627",
+    "old_pdf_total_products": 780,
+    "new_pdf_total_products": 797,
+    "summary": {
+      "newly_added_count": 38,
+      "price_increased_count": 1,
+      "price_decreased_count": 7,
+      "stock_out_count": 21,
+      "unchanged_count": 739
+    }
+  },
+  "newly_added_products": [
+    {
+      "brand": "AESTURA",
+      "product_name": "Atobarrier 365 Hydro Essence - 25ml",
+      "wholesale_price": "270",
+      "wholesale_price_for_you": "250",
+      "page": 1
+    },
+    {
+      "brand": "AESTURA",
+      "product_name": "Derma UV365 Barrier Hydro Mineral Sunscreen - 20ml",
+      "wholesale_price": "350",
+      "wholesale_price_for_you": "330",
+      "page": 1
+    },
+    {
+      "brand": "CENTELLIAN 24+",
+      "product_name": "Madeca Matcha Toning Peeling Gel 150ml",
+      "wholesale_price": "1130",
+      "wholesale_price_for_you": "1110",
+      "page": 10
+    },
+    {
+      "brand": "D'ALBA",
+      "product_name": "White Truffle Prime Intensive Serum - 50ml",
+      "wholesale_price": "1110",
+      "wholesale_price_for_you": "1090",
+      "page": 15
+    },
+    {
+      "brand": "D'ALBA",
+      "product_name": "White Truffle Supreme Intensive Serum - 100ml",
+      "wholesale_price": "2220",
+      "wholesale_price_for_you": "2200",
+      "page": 15
+    },
+    {
+      "brand": "D'ALBA",
+      "product_name": "White Truffle Supreme Intensive Serum - 50ml",
+      "wholesale_price": "1180",
+      "wholesale_price_for_you": "1160",
+      "page": 15
+    },
+    {
+      "brand": "EQQUALBERRY",
+      "product_name": "Bakuchiol Plumping Serum - 30ml",
+      "wholesale_price": "1750",
+      "wholesale_price_for_you": "1730",
+      "page": 17
+    },
+    {
+      "brand": "GROWUS",
+      "product_name": "Damage Therapy Treatment EX - 50g",
+      "wholesale_price": "760",
+      "wholesale_price_for_you": "740",
+      "page": 19
+    },
+    {
+      "brand": "HEVEBLUE",
+      "product_name": "Salmon Caring Centella Light Cleansing Oil - 240ml",
+      "wholesale_price": "1710",
+      "wholesale_price_for_you": "1690",
+      "page": 20
+    },
+    {
+      "brand": "ILLIYOON",
+      "product_name": "MD Red Itch Care Cream - 75ml",
+      "wholesale_price": "",
+      "wholesale_price_for_you": "",
+      "page": 22
+    },
+    {
+      "brand": "LANEIGE",
+      "product_name": "Lip Sleeping Mask Vanilla - 20g",
+      "wholesale_price": "1370",
+      "wholesale_price_for_you": "1350",
+      "page": 27
+    },
+    {
+      "brand": "LANEIGE",
+      "product_name": "Cream Skin Refiner - 50ml",
+      "wholesale_price": "430",
+      "wholesale_price_for_you": "410",
+      "page": 28
+    },
+    {
+      "brand": "ONGREDIENTS",
+      "product_name": "Skin Barrier Calming Lotion - 80ml",
+      "wholesale_price": "940",
+      "wholesale_price_for_you": "920",
+      "page": 36
+    },
+    {
+      "brand": "PURITO",
+      "product_name": "Seoul Luminous Ceramide Sleeping Pack 100ml",
+      "wholesale_price": "1210",
+      "wholesale_price_for_you": "1190",
+      "page": 38
+    },
+    {
+      "brand": "PURITO",
+      "product_name": "Peel Shot Exfoliating Pad 8ea - 64g",
+      "wholesale_price": "",
+      "wholesale_price_for_you": "",
+      "page": 38
+    },
+    {
+      "brand": "ROUND LAB",
+      "product_name": "1025 Dokdo Sunscreen - 50ml",
+      "wholesale_price": "1170",
+      "wholesale_price_for_you": "1150",
+      "page": 40
+    },
+    {
+      "brand": "TIRTIR",
+      "product_name": "Milk Skin Toner - 150ml",
+      "wholesale_price": "2220",
+      "wholesale_price_for_you": "2200",
+      "page": 45
+    },
+    {
+      "brand": "TIRTIR",
+      "product_name": "Ceramic Milk Ampoule - 40ml",
+      "wholesale_price": "2840",
+      "wholesale_price_for_you": "2820",
+      "page": 45
+    },
+    {
+      "brand": "TIRTIR",
+      "product_name": "SOS Serum - 50ml",
+      "wholesale_price": "2490",
+      "wholesale_price_for_you": "2470",
+      "page": 45
+    },
+    {
+      "brand": "TIRTIR",
+      "product_name": "Matcha PDRN Calming Cream - 50ml",
+      "wholesale_price": "2130",
+      "wholesale_price_for_you": "2110",
+      "page": 45
+    },
+    {
+      "brand": "TIRTIR",
+      "product_name": "Mask Fit Red Cushion Foundation (23N Sand) - 4.5 g",
+      "wholesale_price": "960",
+      "wholesale_price_for_you": "940",
+      "page": 45
+    },
+    {
+      "brand": "TIRTIR",
+      "product_name": "Mask Fit Red Cushion Foundation (24 W Soft Beige) - 18g",
+      "wholesale_price": "1680",
+      "wholesale_price_for_you": "1660",
+      "page": 46
+    },
+    {
+      "brand": "VT Cosmetics",
+      "product_name": "Reedle Shot Lip Plumper - 4.3 g (TWINKLE)",
+      "wholesale_price": "810",
+      "wholesale_price_for_you": "790",
+      "page": 47
+    },
+    {
+      "brand": "VT Cosmetics",
+      "product_name": "Reedle Shot Lip Plumper - 4.6g (Rose Berry)",
+      "wholesale_price": "810",
+      "wholesale_price_for_you": "790",
+      "page": 47
+    },
+    {
+      "brand": "VT Cosmetics",
+      "product_name": "Reedle Shot Lip Plumper - 4.6g (Usagi Pink)",
+      "wholesale_price": "810",
+      "wholesale_price_for_you": "790",
+      "page": 47
+    },
+    {
+      "brand": "VT Cosmetics",
+      "product_name": "Reedle Shot Lip Plumper - 4.3g (Crystal)",
+      "wholesale_price": "810",
+      "wholesale_price_for_you": "790",
+      "page": 47
+    },
+    {
+      "brand": "VT Cosmetics",
+      "product_name": "PDRN Hydrogel Mask - 33g",
+      "wholesale_price": "470",
+      "wholesale_price_for_you": "450",
+      "page": 47
+    },
+    {
+      "brand": "BE THE SKIN",
+      "product_name": "BHA+ Pore Zero Serum (sample)",
+      "wholesale_price": "20",
+      "wholesale_price_for_you": "18",
+      "page": 48
+    },
+    {
+      "brand": "BE THE SKIN",
+      "product_name": "BHA+ Dark Spot ZERO Cream (Sachat)",
+      "wholesale_price": "20",
+      "wholesale_price_for_you": "18",
+      "page": 48
+    },
+    {
+      "brand": "DR.CEURACLE",
+      "product_name": "Hyal Reyouth Moist Sun SPF (50+/ PA++++) - (Sachat)",
+      "wholesale_price": "20",
+      "wholesale_price_for_you": "18",
+      "page": 49
+    },
+    {
+      "brand": "JUMISO",
+      "product_name": "Niacinamide 20 Serum 1ml",
+      "wholesale_price": "20",
+      "wholesale_price_for_you": "18",
+      "page": 49
+    },
+    {
+      "brand": "MARY & MAY",
+      "product_name": "Tea Tree Line (Sachat)",
+      "wholesale_price": "30",
+      "wholesale_price_for_you": "28",
+      "page": 49
+    },
+    {
+      "brand": "Pyunkang Yul",
+      "product_name": "Ato Line For Baby & Sensitive Skin (1.5ml+1ml+1.5ml+1.5ml)",
+      "wholesale_price": "0",
+      "wholesale_price_for_you": "0",
+      "page": 50
+    },
+    {
+      "brand": "PURITO",
+      "product_name": "Mighty Bamboo Panthenol Cream Sachet Sample 1ml",
+      "wholesale_price": "20",
+      "wholesale_price_for_you": "18",
+      "page": 50
+    },
+    {
+      "brand": "TORRIDEN",
+      "product_name": "Balanceful Cica Serum (Sachat)",
+      "wholesale_price": "20",
+      "wholesale_price_for_you": "18",
+      "page": 52
+    },
+    {
+      "brand": "TORRIDEN",
+      "product_name": "BALANCEFUL Cica Cream - 2ml",
+      "wholesale_price": "20",
+      "wholesale_price_for_you": "18",
+      "page": 52
+    },
+    {
+      "brand": "TOCOBO",
+      "product_name": "Vita Glazed Lip Mask (Sachat)",
+      "wholesale_price": "20",
+      "wholesale_price_for_you": "18",
+      "page": 52
+    },
+    {
+      "brand": "TOCOBO",
+      "product_name": "Vita Tone Up Sun Cream 1.5 ml",
+      "wholesale_price": "20",
+      "wholesale_price_for_you": "18",
+      "page": 52
+    }
+  ],
+  "price_increased_products": [
+    {
+      "brand": "Beauty Of Joseon",
+      "product_name": "Red Bean Refreshing Pore Mask - 140ml",
+      "old_wholesale_price": "1470",
+      "old_wholesale_price_for_you": "1450",
+      "new_wholesale_price": "1480",
+      "new_wholesale_price_for_you": "1460",
+      "price_difference": 10.0,
+      "percentage_change": 0.69
+    }
+  ],
+  "price_decreased_products": [
+    {
+      "brand": "AXIS-Y",
+      "product_name": "Dark Spot Correcting Glow Serum - 5ml (Promotion Running)",
+      "old_wholesale_price": "125",
+      "old_wholesale_price_for_you": "123",
+      "new_wholesale_price": "120",
+      "new_wholesale_price_for_you": "118",
+      "price_difference": 5.0,
+      "percentage_change": 4.07
+    },
+    {
+      "brand": "CELIMAX",
+      "product_name": "The Vita-A Retinal Shot Tightening Booster - 15ml",
+      "old_wholesale_price": "1200",
+      "old_wholesale_price_for_you": "1180",
+      "new_wholesale_price": "1160",
+      "new_wholesale_price_for_you": "1140",
+      "price_difference": 40.0,
+      "percentage_change": 3.39
+    },
+    {
+      "brand": "FARM STAY",
+      "product_name": "Real Lychee Essence Mask - 23ml",
+      "old_wholesale_price": "100",
+      "old_wholesale_price_for_you": "90",
+      "new_wholesale_price": "90",
+      "new_wholesale_price_for_you": "80",
+      "price_difference": 10.0,
+      "percentage_change": 11.11
+    },
+    {
+      "brand": "FARM STAY",
+      "product_name": "Real Oatmeal Essence Mask - 23ml",
+      "old_wholesale_price": "100",
+      "old_wholesale_price_for_you": "90",
+      "new_wholesale_price": "90",
+      "new_wholesale_price_for_you": "80",
+      "price_difference": 10.0,
+      "percentage_change": 11.11
+    },
+    {
+      "brand": "FARM STAY",
+      "product_name": "Real Peach Essence Mask - 23ml",
+      "old_wholesale_price": "100",
+      "old_wholesale_price_for_you": "90",
+      "new_wholesale_price": "90",
+      "new_wholesale_price_for_you": "80",
+      "price_difference": 10.0,
+      "percentage_change": 11.11
+    },
+    {
+      "brand": "HARUHARU WONDER",
+      "product_name": "Black Rice Moisture Airyfit Daily Sunscreen - 50ml",
+      "old_wholesale_price": "1050",
+      "old_wholesale_price_for_you": "1030",
+      "new_wholesale_price": "1010",
+      "new_wholesale_price_for_you": "990",
+      "price_difference": 40.0,
+      "percentage_change": 3.88
+    },
+    {
+      "brand": "JUMISO",
+      "product_name": "Niacinamide 20 Serum - 40ml",
+      "old_wholesale_price": "1460",
+      "old_wholesale_price_for_you": "1440",
+      "new_wholesale_price": "1450",
+      "new_wholesale_price_for_you": "1430",
+      "price_difference": 10.0,
+      "percentage_change": 0.69
+    }
+  ],
+  "stock_out_products": [
+    {
+      "brand": "ANUA",
+      "product_name": "Azelaic 10 Hyaluron Redness Soothing Pad - 230ml",
+      "wholesale_price": "1940",
+      "wholesale_price_for_you": "1920",
+      "page": 7
+    },
+    {
+      "brand": "ANUA",
+      "product_name": "Heartleaf Silky Moisture Mild Sunscreen - 50ml",
+      "wholesale_price": "1330",
+      "wholesale_price_for_you": "1310",
+      "page": 8
+    },
+    {
+      "brand": "BEPLAIN",
+      "product_name": "Mung Bean pH-Balanced Cleansing Foam - 80ml",
+      "wholesale_price": "980",
+      "wholesale_price_for_you": "960",
+      "page": 9
+    },
+    {
+      "brand": "CENTELLIAN 24+",
+      "product_name": "Madeca Cream Time Reverse - 50ml",
+      "wholesale_price": "1040",
+      "wholesale_price_for_you": "1020",
+      "page": 11
+    },
+    {
+      "brand": "CELIMAX",
+      "product_name": "Derma Nature Fresh Blackhead Jojoba Cleansing Oil - 150ml",
+      "wholesale_price": "1130",
+      "wholesale_price_for_you": "1110",
+      "page": 12
+    },
+    {
+      "brand": "DR.Althea",
+      "product_name": "Aqua Marine Deep Serum - 30ml",
+      "wholesale_price": "1080",
+      "wholesale_price_for_you": "1060",
+      "page": 15
+    },
+    {
+      "brand": "Dr.Althea",
+      "product_name": "Niathione Cream - 30ml",
+      "wholesale_price": "1590",
+      "wholesale_price_for_you": "1570",
+      "page": 15
+    },
+    {
+      "brand": "House of Hur",
+      "product_name": "Moist Ampoule Blusher 06 Cherry Blossom - 20ml",
+      "wholesale_price": "1110",
+      "wholesale_price_for_you": "1090",
+      "page": 21
+    },
+    {
+      "brand": "HEVEBLUE",
+      "product_name": "Salmon Caring Centella Light Cleansing Oil - 250ml",
+      "wholesale_price": "1730",
+      "wholesale_price_for_you": "1710",
+      "page": 21
+    },
+    {
+      "brand": "HEVEBLUE",
+      "product_name": "Salmon Caring Centella Toner - 200ml",
+      "wholesale_price": "1460",
+      "wholesale_price_for_you": "1440",
+      "page": 21
+    },
+    {
+      "brand": "HARUHARU WONDER",
+      "product_name": "Black Rice Moisture Deep Cleansing Oil - 150ml",
+      "wholesale_price": "1460",
+      "wholesale_price_for_you": "1440",
+      "page": 23
+    },
+    {
+      "brand": "JUMISO",
+      "product_name": "Waterfull Hyaluronic Toner - 250ml",
+      "wholesale_price": "1540",
+      "wholesale_price_for_you": "1520",
+      "page": 27
+    },
+    {
+      "brand": "MEDICUBE",
+      "product_name": "Age-R Booster Pro Ex Device (Pink) MINI",
+      "wholesale_price": "8000",
+      "wholesale_price_for_you": "7750",
+      "page": 32
+    },
+    {
+      "brand": "NINELESS",
+      "product_name": "A-Control 10% Azelaic Acid Serum - 30ml",
+      "wholesale_price": "1030",
+      "wholesale_price_for_you": "1010",
+      "page": 36
+    },
+    {
+      "brand": "NUMBUZIN",
+      "product_name": "No.5 Vitamin Boosting Essential Toner - 200ml",
+      "wholesale_price": "1520",
+      "wholesale_price_for_you": "1500",
+      "page": 37
+    },
+    {
+      "brand": "ROUND LAB",
+      "product_name": "1025 DOKDO SUNSCREEN - 50ml",
+      "wholesale_price": "1170",
+      "wholesale_price_for_you": "1150",
+      "page": 43
+    },
+    {
+      "brand": "NINELESS",
+      "product_name": "A-Control Azelaic Acid Cream - 2ml (Sachat)",
+      "wholesale_price": "20",
+      "wholesale_price_for_you": "18",
+      "page": 52
+    },
+    {
+      "brand": "SKIN1004",
+      "product_name": "Madagascar Centella Hyalu Cica Water Fit Sun Serum (sachet)",
+      "wholesale_price": "20",
+      "wholesale_price_for_you": "18",
+      "page": 53
+    },
+    {
+      "brand": "SKIN1004",
+      "product_name": "Madagascar Centella Hyalu-Cica Blue Serum (sachet)",
+      "wholesale_price": "20",
+      "wholesale_price_for_you": "18",
+      "page": 53
+    },
+    {
+      "brand": "SKIN1004",
+      "product_name": "Madagascar Centella Hyalu Cica Moisture Cream (sachet)",
+      "wholesale_price": "20",
+      "wholesale_price_for_you": "18",
+      "page": 53
+    },
+    {
+      "brand": "SKIN1004",
+      "product_name": "Madagascar Centella Poremizing Fresh Ampoule (sachet)",
+      "wholesale_price": "20",
+      "wholesale_price_for_you": "18",
+      "page": 54
+    }
+  ]
+}
