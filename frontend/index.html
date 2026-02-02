@@ -4,6 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" href="https://cdn.tokbd.shop/logo/tok-logo-png.png" type="image/png">
     <title>TOK Prices Tracker</title>
     <link rel="stylesheet" href="index.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,9 +18,15 @@
         <header>
             <div class="header-content">
                 <h1>
-                    <span>📑</span> TOK Prices Tracker
+                    <img src="https://cdn.tokbd.shop/logo/tok-logo-png.png" alt="TOK Logo" class="header-logo">
+                    TOK Prices Tracker
                 </h1>
-                <div class="last-updated" id="lastUpdated">Loading date...</div>
+                <div class="header-actions">
+                    <div class="last-updated" id="lastUpdated">Loading date...</div>
+                    <button id="downloadBtn" class="btn-download" style="display: none;">
+                        <span>⬇️</span> Download JSON
+                    </button>
+                </div>
             </div>
         </header>
 

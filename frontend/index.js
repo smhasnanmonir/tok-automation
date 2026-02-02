@@ -24,6 +24,19 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('loading').style.display = 'none';
         document.getElementById('dashboard').style.display = 'block';
 
+        // Setup Download Button
+        const downloadBtn = document.getElementById('downloadBtn');
+        downloadBtn.style.display = 'inline-flex';
+        downloadBtn.onclick = () => {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "comparison_result.json");
+            document.body.appendChild(downloadAnchorNode); // required for firefox
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        };
+
         // 1. Render Metadata
         const date = new Date(data.metadata.comparison_date).toLocaleString();
         document.getElementById('lastUpdated').textContent = `Last Checked: ${date}`;
