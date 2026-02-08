@@ -63,6 +63,9 @@ document.addEventListener('DOMContentLoaded', () => {
         renderGrid('gridIncrease', data.price_increased_products, 'increase');
         renderGrid('gridDecrease', data.price_decreased_products, 'decrease');
         renderGrid('gridStockout', data.stock_out_products, 'stockout');
+
+        // 4. Setup Search
+        setupSearch();
     }
 
     function renderGrid(elementId, products, type) {
@@ -77,6 +80,8 @@ document.addEventListener('DOMContentLoaded', () => {
         products.forEach(product => {
             const card = document.createElement('div');
             card.className = `product-card card-${type}`;
+            card.dataset.brand = (product.brand || '').toLowerCase();
+            card.dataset.productName = (product.product_name || '').toLowerCase();
 
             // Determine price display based on type
             let priceHtml = '';
@@ -126,6 +131,78 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             container.appendChild(card);
         });
+    }
+
+    function setupSearch() {
+        const searchInput = document.getElementById('searchInput');
+        const clearBtn = document.getElementById('clearSearch');
+        const searchInfo = document.getElementById('searchInfo');
+        let debounceTimer;
+
+        searchInput.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => filterProducts(searchInput.value), 150);
+            clearBtn.style.display = searchInput.value ? 'block' : 'none';
+        });
+
+        clearBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            clearBtn.style.display = 'none';
+            filterProducts('');
+            searchInput.focus();
+        });
+
+        function filterProducts(query) {
+            const terms = query.toLowerCase().trim().split(/\s+/).filter(Boolean);
+            const allCards = document.querySelectorAll('.product-card');
+            let totalVisible = 0;
+
+            allCards.forEach(card => {
+                if (terms.length === 0) {
+                    card.classList.remove('search-hidden');
+                    totalVisible++;
+                    return;
+                }
+
+                const brand = card.dataset.brand;
+                const name = card.dataset.productName;
+                const combined = brand + ' ' + name;
+
+                // Every search term must appear in brand, product name, or their combination
+                const matches = terms.every(term =>
+                    combined.includes(term)
+                );
+
+                if (matches) {
+                    card.classList.remove('search-hidden');
+                    totalVisible++;
+                } else {
+                    card.classList.add('search-hidden');
+                }
+            });
+
+            // Update section empty states
+            document.querySelectorAll('.section').forEach(section => {
+                const grid = section.querySelector('.product-grid');
+                if (!grid) return;
+                const visibleCards = grid.querySelectorAll('.product-card:not(.search-hidden)');
+                section.classList.toggle('search-empty', visibleCards.length === 0 && terms.length > 0);
+            });
+
+            // Update search info
+            if (terms.length > 0) {
+                searchInfo.style.display = 'flex';
+                searchInfo.innerHTML = `Showing <span class="match-count">${totalVisible}</span> matching product${totalVisible !== 1 ? 's' : ''} for "<strong>${escapeHtml(query.trim())}</strong>"`;
+            } else {
+                searchInfo.style.display = 'none';
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
     }
 
     function formatPrice(price) {
