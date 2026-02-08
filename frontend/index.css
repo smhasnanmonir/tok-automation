@@ -557,4 +557,38 @@ h1 {
     .stat-value {
         font-size: 1.75rem;
     }
+
+    /* Search mobile */
+    .search-container {
+        margin-bottom: 1.25rem;
+    }
+
+    .search-wrapper {
+        padding: 0.625rem 0.75rem;
+        border-radius: 10px;
+    }
+
+    .search-icon {
+        font-size: 1rem;
+        margin-right: 0.5rem;
+    }
+
+    .search-wrapper input {
+        font-size: 0.875rem;
+    }
+
+    .search-wrapper input::placeholder {
+        font-size: 0.8rem;
+    }
+
+    .search-clear {
+        font-size: 0.875rem;
+        padding: 0.25rem 0.375rem;
+    }
+
+    .search-info {
+        margin-top: 0.5rem;
+        font-size: 0.75rem;
+        flex-wrap: wrap;
+    }
 }
