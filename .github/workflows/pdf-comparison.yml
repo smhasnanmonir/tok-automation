@@ -31,7 +31,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pdfplumber pandas pypdf
+          pip install pdfplumber pandas pypdf reportlab
 
       - name: Find PDF files
         id: find_pdfs
@@ -111,6 +111,11 @@ jobs:
             git add results/comparisons/
           fi
 
+          # Add PDF reports
+          if [ -f results/comparison_result_report.pdf ]; then
+            git add results/comparison_result_report.pdf
+          fi
+
           # Commit with timestamp
           git commit -m "Update comparison results - ${{ steps.timestamp.output.timestamp }}" || echo "No changes to commit"
 
@@ -119,6 +124,16 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref }}
+
+      - name: Send Email Notification
+        if: success()
+        run: python WholeSalePriceTrack/comparepdfs/send_email.py
+        env:
+          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          RECIPIENT: ${{ secrets.RECIPIENT }}
 
       - name: Create summary comment
         if: github.event_name == 'push'

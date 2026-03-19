@@ -6,6 +6,12 @@ import os
 from datetime import datetime
 from pathlib import Path
 import re
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
+from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 
 
 # Patterns to remove from product names for comparison
@@ -278,7 +284,253 @@ def compare_pdfs(old_pdf_path, new_pdf_path, output_json='results/comparison_res
 
     print(f"Summary saved to: {summary_path}")
 
+    # Generate PDF report
+    pdf_path = output_json.replace('.json', '_report.pdf')
+    generate_pdf_report(comparison_result, pdf_path)
+
     return comparison_result
+
+
+def create_cell(text, max_len=40):
+    """Create a paragraph cell that wraps text properly"""
+    if not text:
+        return Paragraph("", getSampleStyleSheet()['Normal'])
+    # Use word wrap by creating paragraph
+    return Paragraph(text[:max_len] if len(text) <= max_len else text[:max_len-3]+'...',
+                    ParagraphStyle('cell', fontSize=8, wordWrap='CJK'))
+
+def generate_pdf_report(comparison_result, output_pdf='results/comparison_report.pdf'):
+    """Generate a PDF report matching the website design"""
+    
+    # Create the PDF document - landscape for more space
+    from reportlab.lib.pagesizes import landscape
+    doc = SimpleDocTemplate(
+        output_pdf,
+        pagesize=landscape(A4),
+        rightMargin=15,
+        leftMargin=15,
+        topMargin=15,
+        bottomMargin=15
+    )
+    
+    # Get styles
+    styles = getSampleStyleSheet()
+    
+    # Custom styles matching website design
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=18,
+        textColor=colors.HexColor('#2563eb'),
+        spaceAfter=8,
+        alignment=TA_CENTER
+    )
+    
+    subtitle_style = ParagraphStyle(
+        'Subtitle',
+        parent=styles['Heading2'],
+        fontSize=10,
+        textColor=colors.HexColor('#64748b'),
+        spaceAfter=10,
+        alignment=TA_CENTER
+    )
+    
+    section_style = ParagraphStyle(
+        'Section',
+        parent=styles['Heading2'],
+        fontSize=11,
+        textColor=colors.HexColor('#0f172a'),
+        spaceBefore=12,
+        spaceAfter=6
+    )
+    
+    # Build the story (content)
+    story = []
+    
+    # Title
+    story.append(Paragraph("TOK Prices Tracker", title_style))
+    story.append(Paragraph("Wholesale Price Comparison Report", subtitle_style))
+    
+    # Metadata
+    metadata = comparison_result.get('metadata', {})
+    old_pdf = metadata.get('old_pdf', '').split('/')[-1].replace('.pdf', '')
+    new_pdf = metadata.get('new_pdf', '').split('/')[-1].replace('.pdf', '')
+    comparison_date = metadata.get('comparison_date', '')[:10]
+    
+    story.append(Paragraph(f"Date: {comparison_date} | Old: {old_pdf} | New: {new_pdf}", styles['Normal']))
+    story.append(Spacer(1, 8))
+    
+    # Summary stats - matching website's stats-grid
+    summary = metadata.get('summary', {})
+    
+    # Summary table - compact
+    summary_data = [
+        ['Newly Added', 'Price Increased', 'Price Decreased', 'Stock Out', 'Unchanged'],
+        [
+            str(summary.get('newly_added_count', 0)),
+            str(summary.get('price_increased_count', 0)),
+            str(summary.get('price_decreased_count', 0)),
+            str(summary.get('stock_out_count', 0)),
+            str(summary.get('unchanged_count', 0))
+        ]
+    ]
+    
+    summary_table = Table(summary_data, colWidths=[90, 90, 90, 90, 90])
+    summary_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f1f5f9')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.HexColor('#0f172a')),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
+        ('BACKGROUND', (0, 1), (-1, 1), colors.white),
+        ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 1), (-1, 1), 12),
+        ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#e2e8f0')),
+    ]))
+    story.append(summary_table)
+    story.append(Spacer(1, 10))
+    
+    # Helper function to create product tables with all products
+    def create_product_table(products, title, header_color, text_color):
+        if not products:
+            return []
+        
+        sections = []
+        sections.append(Paragraph(f"{title} ({len(products)})", section_style))
+        
+        # Column widths - fixed values to prevent overlap
+        col_widths = [60, 250, 60, 60, 60]
+        
+        # Split into pages if too many products
+        rows_per_page = 30
+        total_rows = len(products)
+        
+        for start in range(0, total_rows, rows_per_page):
+            end = min(start + rows_per_page, total_rows)
+            page_products = products[start:end]
+            
+            # Build table data with proper cell wrapping
+            table_data = [[
+                Paragraph('<b>Brand</b>', styles['Normal']),
+                Paragraph('<b>Product Name</b>', styles['Normal']),
+                Paragraph('<b>Old Price</b>', styles['Normal']),
+                Paragraph('<b>New Price</b>', styles['Normal']),
+                Paragraph('<b>Change</b>', styles['Normal'])
+            ]]
+            
+            for p in page_products:
+                brand = p.get('brand', '')[:15] if p.get('brand') else ''
+                product = p.get('product_name', '')[:50] if p.get('product_name') else ''
+                
+                # Use Paragraph for text wrapping
+                brand_cell = Paragraph(brand, ParagraphStyle('b', fontSize=7))
+                product_cell = Paragraph(product, ParagraphStyle('p', fontSize=7))
+                
+                if 'old_wholesale_price_for_you' in p:
+                    # Price change product
+                    old_p = str(p.get('old_wholesale_price_for_you', '0'))
+                    new_p = str(p.get('new_wholesale_price_for_you', '0'))
+                    diff = p.get('price_difference', 0)
+                    pct = p.get('percentage_change', 0)
+                    sign = '+' if diff > 0 else ''
+                    change = f"{sign}{diff} ({pct}%)"
+                    table_data.append([
+                        brand_cell,
+                        product_cell,
+                        Paragraph(old_p, ParagraphStyle('n', fontSize=7)),
+                        Paragraph(new_p, ParagraphStyle('n', fontSize=7)),
+                        Paragraph(change, ParagraphStyle('c', fontSize=7))
+                    ])
+                else:
+                    # Regular product (new or stock out)
+                    price = str(p.get('wholesale_price_for_you', 'N/A'))
+                    table_data.append([
+                        brand_cell,
+                        product_cell,
+                        Paragraph(price, ParagraphStyle('n', fontSize=7)),
+                        Paragraph('-', ParagraphStyle('n', fontSize=7, textColor=colors.grey)),
+                        Paragraph('-', ParagraphStyle('n', fontSize=7, textColor=colors.grey))
+                    ])
+            
+            if len(table_data) > 1:
+                # Create table with fixed column widths
+                t = Table(table_data, colWidths=col_widths)
+                t.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, 0), header_color),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), text_color),
+                    ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                    ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0, 0), (-1, 0), 7),
+                    ('BOTTOMPADDING', (0, 0), (-1, 0), 4),
+                    ('TOPPADDING', (0, 0), (-1, -1), 3),
+                    ('BOTTOMPADDING', (0, 1), (-1, -1), 3),
+                    ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+                    ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#e2e8f0')),
+                    ('LEFTPADDING', (0, 0), (-1, -1), 3),
+                    ('RIGHTPADDING', (0, 0), (-1, -1), 3),
+                ]))
+                sections.append(t)
+            
+            if end < total_rows:
+                sections.append(PageBreak())
+        
+        return sections
+    
+    # Newly Added Products - ALL products
+    newly_added = comparison_result.get('newly_added_products', [])
+    if newly_added:
+        story.extend(create_product_table(
+            newly_added,
+            "NEWLY ADDED PRODUCTS",
+            colors.HexColor('#2563eb'),
+            colors.white
+        ))
+        story.append(PageBreak())
+    
+    # Price Increased - ALL products
+    price_increased = comparison_result.get('price_increased_products', [])
+    if price_increased:
+        story.extend(create_product_table(
+            price_increased,
+            "PRICE INCREASED",
+            colors.HexColor('#fef2f2'),
+            colors.HexColor('#ef4444')
+        ))
+        story.append(PageBreak())
+    
+    # Price Decreased - ALL products
+    price_decreased = comparison_result.get('price_decreased_products', [])
+    if price_decreased:
+        story.extend(create_product_table(
+            price_decreased,
+            "PRICE DECREASED",
+            colors.HexColor('#f0fdf4'),
+            colors.HexColor('#22c55e')
+        ))
+        story.append(PageBreak())
+    
+    # Stock Out - ALL products
+    stock_out = comparison_result.get('stock_out_products', [])
+    if stock_out:
+        story.extend(create_product_table(
+            stock_out,
+            "STOCK OUT",
+            colors.HexColor('#fef2f2'),
+            colors.HexColor('#ef4444')
+        ))
+    
+    # Footer
+    story.append(Spacer(1, 15))
+    story.append(Paragraph("Generated automatically by TOK Automation System",
+                           ParagraphStyle('Footer', parent=styles['Normal'],
+                                         fontSize=6, textColor=colors.grey, alignment=TA_CENTER)))
+    
+    # Build PDF
+    doc.build(story)
+    print(f"PDF report saved to: {output_pdf}")
+    return output_pdf
 
 
 def generate_available_weeks_json(pdf_dir='WholeSalePriceTrack/pdfs', output_file='results/available_weeks.json'):
@@ -364,7 +616,8 @@ if __name__ == "__main__":
         print("  python compare_pdfs.py compare <old_pdf> <new_pdf>  - Compare two specific PDFs")
         print("  python compare_pdfs.py list                          - List all available PDFs")
         print("  python compare_pdfs.py generate-weeks                - Generate available_weeks.json")
-        print("  python compare_pdfs.py generate-all                   - Generate all comparison files")
+        print("  python compare_pdfs.py generate-all                  - Generate all comparison files")
+        print("  python compare_pdfs.py pdf [json_file]               - Generate PDF report from JSON")
         sys.exit(1)
 
     command = sys.argv[1]
@@ -391,7 +644,15 @@ if __name__ == "__main__":
     elif command == "generate-all":
         generate_all_comparisons()
 
+    elif command == "pdf":
+        # Generate PDF from existing comparison result
+        json_file = sys.argv[2] if len(sys.argv) > 2 else 'results/comparison_result.json'
+        with open(json_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        pdf_file = json_file.replace('.json', '_report.pdf')
+        generate_pdf_report(data, pdf_file)
+
     else:
         print(f"Unknown command: {command}")
-        print("Use: compare, list, generate-weeks, or generate-all")
+        print("Use: compare, list, generate-weeks, generate-all, or pdf")
         sys.exit(1)
