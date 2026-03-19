@@ -33,7 +33,7 @@ def send_email_with_attachment():
     smtp_password = os.getenv('SMTP_PASSWORD', '')
     
     # Hardcoded recipients
-    recipients = ['tokbdshop@gmail.com', 'monirhasnan@gmail.com']
+    recipients = ['monirhasnan@gmail.com', 'tj010901@gmail.com']
     
     if not smtp_username or not smtp_password:
         print('SMTP credentials not configured, skipping email')
