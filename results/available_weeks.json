@@ -1,0 +1,17 @@
+{
+  "weeks": [
+    {
+      "filename": "Wholesale Price ( 07-03-2026 ).pdf",
+      "path": "WholeSalePriceTrack\\pdfs\\Wholesale Price ( 07-03-2026 ).pdf",
+      "date": "07-03-2026",
+      "display_name": "Week of 07-03-2026"
+    },
+    {
+      "filename": "Wholesale Price ( 28-02-2026 ).pdf",
+      "path": "WholeSalePriceTrack\\pdfs\\Wholesale Price ( 28-02-2026 ).pdf",
+      "date": "28-02-2026",
+      "display_name": "Week of 28-02-2026"
+    }
+  ],
+  "generated_at": "2026-03-20T00:49:27.448521"
+}

@@ -1,37 +1,71 @@
-
-
 import pdfplumber
 import pandas as pd
 import json
 import sys
+import os
 from datetime import datetime
 from pathlib import Path
+import re
+
+
+def extract_date_from_filename(filename):
+    """Extract date from PDF filename like 'Wholesale Price ( 28-02-2026 ).pdf'"""
+    # Look for date pattern in parentheses
+    match = re.search(r'\(\s*(\d{2}-\d{2}-\d{4})\s*\)', filename)
+    if match:
+        date_str = match.group(1)
+        try:
+            return datetime.strptime(date_str, '%d-%m-%Y')
+        except:
+            pass
+    return None
+
+
+def get_all_pdfs(pdf_dir='WholeSalePriceTrack/pdfs'):
+    """Get all PDF files sorted by date (newest first)"""
+    pdf_dir = Path(pdf_dir)
+    if not pdf_dir.exists():
+        return []
+
+    pdfs = []
+    for pdf_file in pdf_dir.glob('*.pdf'):
+        date = extract_date_from_filename(pdf_file.name)
+        pdfs.append({
+            'path': str(pdf_file),
+            'name': pdf_file.name,
+            'date': date,
+            'date_str': date.strftime('%d-%m-%Y') if date else pdf_file.name
+        })
+
+    # Sort by date (newest first)
+    pdfs.sort(key=lambda x: x['date'] if x['date'] else datetime.min, reverse=True)
+    return pdfs
 
 
 def extract_products_from_pdf(pdf_path):
     """Extract products from PDF"""
     all_products = []
-    
+
     try:
         with pdfplumber.open(pdf_path) as pdf:
             print(f"Processing {pdf_path}: {len(pdf.pages)} pages")
-            
+
             for i, page in enumerate(pdf.pages, start=1):
                 tables = page.extract_tables()
-                
+
                 if tables:
                     for table in tables:
                         if not table or len(table) < 2:
                             continue
-                        
+
                         df = pd.DataFrame(table[1:], columns=table[0])
-                        
+
                         # Find columns
                         brand_col = None
                         product_col = None
                         normal_price_col = None
                         wholesale_price_col = None
-                        
+
                         for col in df.columns:
                             col_lower = str(col).lower()
                             if 'brand' in col_lower:
@@ -42,17 +76,17 @@ def extract_products_from_pdf(pdf_path):
                                 normal_price_col = col
                             elif 'wholesale' in col_lower and 'you' in col_lower:
                                 wholesale_price_col = col
-                        
+
                         # Extract products
                         if brand_col and product_col:
                             for _, row in df.iterrows():
                                 brand = str(row.get(brand_col, '')).strip()
                                 product_name = str(row.get(product_col, '')).strip()
-                                
+
                                 if brand and product_name and brand != 'nan' and product_name != 'nan':
                                     normal_price = str(row.get(normal_price_col, '')).strip() if normal_price_col else ''
                                     wholesale_price = str(row.get(wholesale_price_col, '')).strip() if wholesale_price_col else ''
-                                    
+
                                     product = {
                                         "brand": brand,
                                         "product_name": product_name,
@@ -61,13 +95,13 @@ def extract_products_from_pdf(pdf_path):
                                         "page": i
                                     }
                                     all_products.append(product)
-                
+
                 if (i % 10 == 0):
                     print(f"  Processed {i}/{len(pdf.pages)} pages")
-        
+
         print(f"  Extracted {len(all_products)} products")
         return all_products
-        
+
     except Exception as e:
         print(f"ERROR: Could not process {pdf_path}: {e}")
         return []
@@ -82,9 +116,9 @@ def safe_price_convert(price_str):
     """Safely convert price string to float"""
     if not price_str or price_str == 'nan' or price_str == '':
         return 0.0
-    
+
     cleaned = ''.join(c for c in price_str if c.isdigit() or c == '.')
-    
+
     try:
         return float(cleaned) if cleaned else 0.0
     except:
@@ -93,45 +127,45 @@ def safe_price_convert(price_str):
 
 def compare_pdfs(old_pdf_path, new_pdf_path, output_json='results/comparison_result.json'):
     """Compare two PDFs and generate comparison report"""
-    
+
     print("="*80)
     print("PDF COMPARISON")
     print("="*80)
-    
+
     # Extract products
     print("\n[1/3] Extracting products from OLD PDF...")
     old_products = extract_products_from_pdf(old_pdf_path)
-    
+
     print("\n[2/3] Extracting products from NEW PDF...")
     new_products = extract_products_from_pdf(new_pdf_path)
-    
+
     if not old_products or not new_products:
         print("\nERROR: Could not extract products from one or both PDFs")
         sys.exit(1)
-    
+
     # Create dictionaries for lookup
     old_dict = {create_product_key(p): p for p in old_products}
     new_dict = {create_product_key(p): p for p in new_products}
-    
+
     # Initialize results
     newly_added = []
     price_increased = []
     price_decreased = []
     stock_out = []
     unchanged = []
-    
+
     print("\n[3/3] Comparing products...")
-    
+
     # Compare products
     for key, new_product in new_dict.items():
         if key not in old_dict:
             newly_added.append(new_product)
         else:
             old_product = old_dict[key]
-            
+
             old_price = safe_price_convert(old_product['wholesale_price_for_you'])
             new_price = safe_price_convert(new_product['wholesale_price_for_you'])
-            
+
             if new_price > old_price and old_price > 0:
                 price_increased.append({
                     "brand": new_product['brand'],
@@ -156,12 +190,12 @@ def compare_pdfs(old_pdf_path, new_pdf_path, output_json='results/comparison_res
                 })
             else:
                 unchanged.append(new_product)
-    
+
     # Find stock out products
     for key, old_product in old_dict.items():
         if key not in new_dict:
             stock_out.append(old_product)
-    
+
     # Create comparison result
     comparison_result = {
         "metadata": {
@@ -183,14 +217,14 @@ def compare_pdfs(old_pdf_path, new_pdf_path, output_json='results/comparison_res
         "price_decreased_products": price_decreased,
         "stock_out_products": stock_out
     }
-    
+
     # Create results directory
     Path(output_json).parent.mkdir(parents=True, exist_ok=True)
-    
+
     # Save to JSON
     with open(output_json, 'w', encoding='utf-8') as f:
         json.dump(comparison_result, f, indent=2, ensure_ascii=False)
-    
+
     # Print summary
     print("\n" + "="*80)
     print("COMPARISON SUMMARY")
@@ -204,7 +238,7 @@ def compare_pdfs(old_pdf_path, new_pdf_path, output_json='results/comparison_res
     print(f"Unchanged: {len(unchanged)} products")
     print(f"\nComparison saved to: {output_json}")
     print("="*80)
-    
+
     # Create text summary
     summary_path = output_json.replace('.json', '_summary.txt')
     with open(summary_path, 'w', encoding='utf-8') as f:
@@ -218,18 +252,69 @@ def compare_pdfs(old_pdf_path, new_pdf_path, output_json='results/comparison_res
         f.write(f"Price Decreased: {len(price_decreased)} products\n")
         f.write(f"Stock Out: {len(stock_out)} products\n")
         f.write(f"Unchanged: {len(unchanged)} products\n")
-    
+
     print(f"Summary saved to: {summary_path}")
-    
+
     return comparison_result
 
 
+def generate_available_weeks_json(pdf_dir='WholeSalePriceTrack/pdfs', output_file='results/available_weeks.json'):
+    """Generate a JSON file with all available weeks for the frontend"""
+    pdfs = get_all_pdfs(pdf_dir)
+
+    weeks_data = {
+        "weeks": [
+            {
+                "filename": pdf['name'],
+                "path": pdf['path'],
+                "date": pdf['date_str'],
+                "display_name": f"Week of {pdf['date_str']}" if pdf['date'] else pdf['name']
+            }
+            for pdf in pdfs
+        ],
+        "generated_at": datetime.now().isoformat()
+    }
+
+    # Create results directory
+    Path(output_file).parent.mkdir(parents=True, exist_ok=True)
+
+    with open(output_file, 'w', encoding='utf-8') as f:
+        json.dump(weeks_data, f, indent=2, ensure_ascii=False)
+
+    print(f"Available weeks saved to: {output_file}")
+    return weeks_data
+
+
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("Usage: python compare_pdfs.py <old_pdf> <new_pdf>")
+    if len(sys.argv) < 2:
+        print("Usage:")
+        print("  python compare_pdfs.py compare <old_pdf> <new_pdf>  - Compare two specific PDFs")
+        print("  python compare_pdfs.py list                          - List all available PDFs")
+        print("  python compare_pdfs.py generate-weeks                - Generate available_weeks.json")
         sys.exit(1)
-    
-    old_pdf = sys.argv[1]
-    new_pdf = sys.argv[2]
-    
-    compare_pdfs(old_pdf, new_pdf)
+
+    command = sys.argv[1]
+
+    if command == "compare":
+        if len(sys.argv) != 4:
+            print("Usage: python compare_pdfs.py compare <old_pdf> <new_pdf>")
+            sys.exit(1)
+        old_pdf = sys.argv[2]
+        new_pdf = sys.argv[3]
+        compare_pdfs(old_pdf, new_pdf)
+
+    elif command == "list":
+        pdfs = get_all_pdfs()
+        print("\nAvailable PDFs (sorted by date, newest first):")
+        print("="*60)
+        for i, pdf in enumerate(pdfs, 1):
+            print(f"{i}. {pdf['name']} ({pdf['date_str']})")
+        print()
+
+    elif command == "generate-weeks":
+        generate_available_weeks_json()
+
+    else:
+        print(f"Unknown command: {command}")
+        print("Use: compare, list, or generate-weeks")
+        sys.exit(1)
