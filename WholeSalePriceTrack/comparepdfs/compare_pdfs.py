@@ -514,8 +514,8 @@ def generate_pdf_report(comparison_result, output_pdf='results/comparison_report
         story.extend(create_product_table(
             newly_added,
             "NEWLY ADDED PRODUCTS",
-            colors.HexColor('#2563eb'),
-            colors.white,
+            colors.HexColor('#dbeafe'),  # Light blue background
+            colors.HexColor('#1e40af'),   # Dark blue text
             show_price_change=False
         ))
         story.append(PageBreak())
@@ -526,8 +526,8 @@ def generate_pdf_report(comparison_result, output_pdf='results/comparison_report
         story.extend(create_product_table(
             price_increased,
             "PRICE INCREASED",
-            colors.HexColor('#fef2f2'),
-            colors.HexColor('#ef4444'),
+            colors.HexColor('#ffedd5'),  # Light orange background
+            colors.HexColor('#c2410c'),  # Dark orange text
             show_price_change=True
         ))
         story.append(PageBreak())
@@ -538,8 +538,8 @@ def generate_pdf_report(comparison_result, output_pdf='results/comparison_report
         story.extend(create_product_table(
             price_decreased,
             "PRICE DECREASED",
-            colors.HexColor('#f0fdf4'),
-            colors.HexColor('#22c55e'),
+            colors.HexColor('#dcfce7'),  # Light green background
+            colors.HexColor('#166534'),  # Dark green text
             show_price_change=True
         ))
         story.append(PageBreak())
@@ -550,8 +550,8 @@ def generate_pdf_report(comparison_result, output_pdf='results/comparison_report
         story.extend(create_product_table(
             stock_out,
             "STOCK OUT",
-            colors.HexColor('#fef2f2'),
-            colors.HexColor('#ef4444'),
+            colors.HexColor('#fee2e2'),  # Light red background
+            colors.HexColor('#991b1b'),  # Dark red text
             show_price_change=False
         ))
     
