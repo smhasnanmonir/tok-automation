@@ -2,25 +2,18 @@
   "metadata": {
     "old_pdf": "WholeSalePriceTrack\\pdfs\\Wholesale Price ( 15-02-2026 ).pdf",
     "new_pdf": "WholeSalePriceTrack\\pdfs\\Wholesale Price ( 07-03-2026 ).pdf",
-    "comparison_date": "2026-03-20T01:13:42.500707",
+    "comparison_date": "2026-03-20T02:04:27.069820",
     "old_pdf_total_products": 902,
     "new_pdf_total_products": 841,
     "summary": {
-      "newly_added_count": 45,
-      "price_increased_count": 8,
+      "newly_added_count": 40,
+      "price_increased_count": 12,
       "price_decreased_count": 14,
-      "stock_out_count": 107,
-      "unchanged_count": 763
+      "stock_out_count": 102,
+      "unchanged_count": 762
     }
   },
   "newly_added_products": [
-    {
-      "brand": "AXIS-Y",
-      "product_name": "Dark Spot Correcting Glow Serum - 50ml",
-      "wholesale_price": "910",
-      "wholesale_price_for_you": "890",
-      "page": 1
-    },
     {
       "brand": "ABIB",
       "product_name": "Gummy Sheet Mask Sedum Hyaluron Sticker (10 Sheets) - 27ml",
@@ -57,32 +50,11 @@
       "page": 9
     },
     {
-      "brand": "Beauty Of Joseon",
-      "product_name": "Radiance Cleansing Balm - 100ml",
-      "wholesale_price": "1270",
-      "wholesale_price_for_you": "1250",
-      "page": 9
-    },
-    {
       "brand": "CENTELLIAN 24+",
       "product_name": "360º Shot PDRN Active Serum - 50ml",
       "wholesale_price": "1740",
       "wholesale_price_for_you": "1720",
       "page": 10
-    },
-    {
-      "brand": "COSRX",
-      "product_name": "Advance Snail 96 Musin Power Essence - 100ml",
-      "wholesale_price": "1190",
-      "wholesale_price_for_you": "1170",
-      "page": 13
-    },
-    {
-      "brand": "COSRX",
-      "product_name": "Advance Snail 92 All In One Cream - 100g",
-      "wholesale_price": "1270",
-      "wholesale_price_for_you": "1250",
-      "page": 13
     },
     {
       "brand": "DR.Althea",
@@ -111,13 +83,6 @@
       "wholesale_price": "2110",
       "wholesale_price_for_you": "2090",
       "page": 15
-    },
-    {
-      "brand": "EQQUALBERRY",
-      "product_name": "Swimming Pool Toner -155ml",
-      "wholesale_price": "1270",
-      "wholesale_price_for_you": "1250",
-      "page": 17
     },
     {
       "brand": "GOODAL",
@@ -332,6 +297,16 @@
   ],
   "price_increased_products": [
     {
+      "brand": "AXIS-Y",
+      "product_name": "Dark Spot Correcting Glow Serum - 50ml",
+      "old_wholesale_price": "880",
+      "old_wholesale_price_for_you": "860",
+      "new_wholesale_price": "910",
+      "new_wholesale_price_for_you": "890",
+      "price_difference": 30.0,
+      "percentage_change": 3.49
+    },
+    {
       "brand": "ABIB",
       "product_name": "Acne Foam Cleanser Heartleaf Foam - 150ml",
       "old_wholesale_price": "1040",
@@ -372,6 +347,26 @@
       "percentage_change": 3.42
     },
     {
+      "brand": "COSRX",
+      "product_name": "Advance Snail 96 Musin Power Essence - 100ml",
+      "old_wholesale_price": "1160",
+      "old_wholesale_price_for_you": "1140",
+      "new_wholesale_price": "1190",
+      "new_wholesale_price_for_you": "1170",
+      "price_difference": 30.0,
+      "percentage_change": 2.63
+    },
+    {
+      "brand": "COSRX",
+      "product_name": "Advance Snail 92 All In One Cream - 100g",
+      "old_wholesale_price": "1250",
+      "old_wholesale_price_for_you": "1230",
+      "new_wholesale_price": "1270",
+      "new_wholesale_price_for_you": "1250",
+      "price_difference": 20.0,
+      "percentage_change": 1.63
+    },
+    {
       "brand": "EQQUALBERRY",
       "product_name": "Swimming Pool Daily Facial Toner - 300ml",
       "old_wholesale_price": "1870",
@@ -380,6 +375,16 @@
       "new_wholesale_price_for_you": "1930",
       "price_difference": 80.0,
       "percentage_change": 4.32
+    },
+    {
+      "brand": "EQQUALBERRY",
+      "product_name": "Swimming Pool Toner -155ml",
+      "old_wholesale_price": "1220",
+      "old_wholesale_price_for_you": "1200",
+      "new_wholesale_price": "1270",
+      "new_wholesale_price_for_you": "1250",
+      "price_difference": 50.0,
+      "percentage_change": 4.17
     },
     {
       "brand": "MEDICUBE",
@@ -557,13 +562,6 @@
   "stock_out_products": [
     {
       "brand": "AXIS-Y",
-      "product_name": "Dark Spot Correcting Glow Serum - 50ml (Promotion Running)",
-      "wholesale_price": "880",
-      "wholesale_price_for_you": "860",
-      "page": 1
-    },
-    {
-      "brand": "AXIS-Y",
       "product_name": "Spot The Difference Blemish Treatment - 15ml",
       "wholesale_price": "890",
       "wholesale_price_for_you": "870",
@@ -711,13 +709,6 @@
     },
     {
       "brand": "Beauty Of Joseon",
-      "product_name": "Radiance Cleansing Balm - 100ml (Promotion Running)",
-      "wholesale_price": "1270",
-      "wholesale_price_for_you": "1250",
-      "page": 9
-    },
-    {
-      "brand": "Beauty Of Joseon",
       "product_name": "Green Plum Refreshing Cleanser - 100ml",
       "wholesale_price": "930",
       "wholesale_price_for_you": "910",
@@ -778,20 +769,6 @@
       "wholesale_price": "1220",
       "wholesale_price_for_you": "1200",
       "page": 12
-    },
-    {
-      "brand": "COSRX",
-      "product_name": "Advance Snail 96 Musin Power Essence - 100ml (Promotion Running)",
-      "wholesale_price": "1160",
-      "wholesale_price_for_you": "1140",
-      "page": 14
-    },
-    {
-      "brand": "COSRX",
-      "product_name": "Advance Snail 92 All In One Cream - 100g (Promotion Running)",
-      "wholesale_price": "1250",
-      "wholesale_price_for_you": "1230",
-      "page": 14
     },
     {
       "brand": "Dr.Althea",
@@ -862,13 +839,6 @@
       "wholesale_price": "360",
       "wholesale_price_for_you": "340",
       "page": 17
-    },
-    {
-      "brand": "EQQUALBERRY",
-      "product_name": "Swimming Pool Toner -155ml (Promotion Running)",
-      "wholesale_price": "1220",
-      "wholesale_price_for_you": "1200",
-      "page": 18
     },
     {
       "brand": "FOODOLOGY",

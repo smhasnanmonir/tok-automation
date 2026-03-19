@@ -8,6 +8,27 @@ from pathlib import Path
 import re
 
 
+# Patterns to remove from product names for comparison
+PRODUCT_NAME_CLEANUP_PATTERNS = [
+    r'\(Promotion Running\)',
+    r'\(Promotion\)',
+    r'\(promotion running\)',
+    r'\(promotion\)',
+    r'\s*-\s*Promotion Running',
+    r'\s*-\s*Promotion',
+    r'\s*-\s*promotion running',
+    r'\s*-\s*promotion',
+]
+
+
+def cleanup_product_name(product_name):
+    """Remove promotional text from product name for consistent comparison"""
+    cleaned = product_name
+    for pattern in PRODUCT_NAME_CLEANUP_PATTERNS:
+        cleaned = re.sub(pattern, '', cleaned, flags=re.IGNORECASE)
+    return cleaned.strip()
+
+
 def extract_date_from_filename(filename):
     """Extract date from PDF filename like 'Wholesale Price ( 28-02-2026 ).pdf'"""
     # Look for date pattern in parentheses
@@ -108,8 +129,10 @@ def extract_products_from_pdf(pdf_path):
 
 
 def create_product_key(product):
-    """Create unique key for product matching"""
-    return f"{product['brand']}||{product['product_name']}"
+    """Create unique key for product matching
+    Uses cleaned product name to handle promotional variants"""
+    cleaned_name = cleanup_product_name(product['product_name'])
+    return f"{product['brand']}||{cleaned_name}"
 
 
 def safe_price_convert(price_str):

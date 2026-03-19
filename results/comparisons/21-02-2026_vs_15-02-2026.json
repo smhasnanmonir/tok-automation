@@ -2,7 +2,7 @@
   "metadata": {
     "old_pdf": "WholeSalePriceTrack\\pdfs\\Wholesale Price ( 15-02-2026 ).pdf",
     "new_pdf": "WholeSalePriceTrack\\pdfs\\Wholesale Price ( 21-02-2026 ) (1).pdf",
-    "comparison_date": "2026-03-20T01:14:15.125830",
+    "comparison_date": "2026-03-20T02:04:56.796815",
     "old_pdf_total_products": 902,
     "new_pdf_total_products": 900,
     "summary": {
@@ -10,7 +10,7 @@
       "price_increased_count": 10,
       "price_decreased_count": 12,
       "stock_out_count": 35,
-      "unchanged_count": 835
+      "unchanged_count": 833
     }
   },
   "newly_added_products": [
