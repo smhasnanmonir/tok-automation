@@ -31,7 +31,9 @@ def send_email_with_attachment():
     smtp_port = os.getenv('SMTP_PORT', '587')
     smtp_username = os.getenv('SMTP_USERNAME', '')
     smtp_password = os.getenv('SMTP_PASSWORD', '')
-    recipient = os.getenv('RECIPIENT', 'tokbdshop@gmail.com')
+    
+    # Hardcoded recipients
+    recipients = ['tokbdshop@gmail.com', 'monirhasnan@gmail.com']
     
     if not smtp_username or not smtp_password:
         print('SMTP credentials not configured, skipping email')
@@ -40,7 +42,7 @@ def send_email_with_attachment():
     # Create email
     msg = MIMEMultipart()
     msg['From'] = smtp_username
-    msg['To'] = recipient
+    msg['To'] = ', '.join(recipients)
     msg['Subject'] = f'TOK Price Comparison: {old_pdf} vs {new_pdf}'
     
     body = f"""TOK Wholesale Price Comparison Report
@@ -72,14 +74,14 @@ PDF Report attached.
     else:
         print(f"PDF not found at {pdf_path}, sending email without attachment")
     
-    # Send email
+    # Send email to all recipients
     try:
         server = smtplib.SMTP(smtp_server, int(smtp_port))
         server.starttls()
         server.login(smtp_username, smtp_password)
-        server.sendmail(smtp_username, recipient, msg.as_string())
+        server.sendmail(smtp_username, recipients, msg.as_string())
         server.quit()
-        print('Email sent successfully!')
+        print(f'Email sent successfully to: {recipients}')
         return True
     except Exception as e:
         print(f'Failed to send email: {e}')

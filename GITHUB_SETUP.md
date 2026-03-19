@@ -6,13 +6,17 @@ This guide explains how to configure the GitHub repository secrets required for 
 
 The workflow requires the following GitHub Secrets to be configured:
 
-| Secret Name     | Value                 | Description                |
-| --------------- | --------------------- | -------------------------- |
-| `SMTP_SERVER`   | `smtp.gmail.com`      | SMTP server for Gmail      |
-| `SMTP_PORT`     | `587`                 | SMTP port (TLS)            |
-| `SMTP_USERNAME` | Your Gmail address    | e.g., `yourname@gmail.com` |
-| `SMTP_PASSWORD` | Gmail App Password    | 16-character app password  |
-| `RECIPIENT`     | `tokbdshop@gmail.com` | Email recipient            |
+| Secret Name     | Value              | Description                |
+| --------------- | ------------------ | -------------------------- |
+| `SMTP_SERVER`   | `smtp.gmail.com`   | SMTP server for Gmail      |
+| `SMTP_PORT`     | `587`              | SMTP port (TLS)            |
+| `SMTP_USERNAME` | Your Gmail address | e.g., `yourname@gmail.com` |
+| `SMTP_PASSWORD` | Gmail App Password | 16-character app password  |
+
+**Note:** Email recipients are hardcoded in the script to:
+
+- `tokbdshop@gmail.com`
+- `monirhasnan@gmail.com`
 
 ## Step-by-Step Setup
 
