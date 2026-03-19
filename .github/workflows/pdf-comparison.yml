@@ -82,6 +82,7 @@ jobs:
         run: |
           python WholeSalePriceTrack/comparepdfs/compare_pdfs.py compare "${{ steps.find_pdfs.outputs.old_pdf }}" "${{ steps.find_pdfs.outputs.new_pdf }}"
           python WholeSalePriceTrack/comparepdfs/compare_pdfs.py generate-weeks
+          python WholeSalePriceTrack/comparepdfs/compare_pdfs.py generate-all
 
       - name: Generate timestamp
         id: timestamp
@@ -103,6 +104,11 @@ jobs:
           # Add available weeks file for frontend
           if [ -f results/available_weeks.json ]; then
             git add results/available_weeks.json
+          fi
+
+          # Add all comparison files
+          if [ -d results/comparisons ]; then
+            git add results/comparisons/
           fi
 
           # Commit with timestamp

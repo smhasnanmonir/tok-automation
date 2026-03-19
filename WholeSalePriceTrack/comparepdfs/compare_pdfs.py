@@ -285,12 +285,63 @@ def generate_available_weeks_json(pdf_dir='WholeSalePriceTrack/pdfs', output_fil
     return weeks_data
 
 
+def generate_all_comparisons(pdf_dir='WholeSalePriceTrack/pdfs', output_dir='results/comparisons'):
+    """Generate comparison JSON for all possible week pairs"""
+    pdfs = get_all_pdfs(pdf_dir)
+    
+    if len(pdfs) < 2:
+        print("Need at least 2 PDFs to generate comparisons")
+        return
+    
+    # Create output directory
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+    
+    comparisons = []
+    
+    # Generate comparisons for all pairs (newer vs older)
+    for i, new_pdf in enumerate(pdfs):
+        for j, old_pdf in enumerate(pdfs):
+            if i < j:  # new_pdf is newer than old_pdf
+                # Create a safe filename
+                safe_name = f"{new_pdf['date_str']}_vs_{old_pdf['date_str']}.json"
+                output_file = output_path / safe_name
+                
+                print(f"\nGenerating: {new_pdf['date_str']} vs {old_pdf['date_str']}")
+                
+                # Run comparison
+                result = compare_pdfs(old_pdf['path'], new_pdf['path'], str(output_file))
+                
+                comparisons.append({
+                    "new_date": new_pdf['date_str'],
+                    "old_date": old_pdf['date_str'],
+                    "filename": safe_name,
+                    "path": str(output_file)
+                })
+    
+    # Save index of all comparisons
+    index_file = output_path / 'index.json'
+    index_data = {
+        "comparisons": comparisons,
+        "generated_at": datetime.now().isoformat()
+    }
+    
+    with open(index_file, 'w', encoding='utf-8') as f:
+        json.dump(index_data, f, indent=2, ensure_ascii=False)
+    
+    print(f"\nGenerated {len(comparisons)} comparisons")
+    print(f"Index saved to: {index_file}")
+    
+    return index_data
+
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage:")
         print("  python compare_pdfs.py compare <old_pdf> <new_pdf>  - Compare two specific PDFs")
         print("  python compare_pdfs.py list                          - List all available PDFs")
         print("  python compare_pdfs.py generate-weeks                - Generate available_weeks.json")
+        print("  python compare_pdfs.py generate-all                   - Generate all comparison files")
         sys.exit(1)
 
     command = sys.argv[1]
@@ -314,7 +365,10 @@ if __name__ == "__main__":
     elif command == "generate-weeks":
         generate_available_weeks_json()
 
+    elif command == "generate-all":
+        generate_all_comparisons()
+
     else:
         print(f"Unknown command: {command}")
-        print("Use: compare, list, or generate-weeks")
+        print("Use: compare, list, generate-weeks, or generate-all")
         sys.exit(1)

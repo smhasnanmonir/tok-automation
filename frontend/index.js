@@ -4,9 +4,12 @@ document.addEventListener("DOMContentLoaded", () => {
     "https://raw.githubusercontent.com/smhasnanmonir/tok-automation/refs/heads/main/results/comparison_result.json";
   const WEEKS_URL =
     "https://raw.githubusercontent.com/smhasnanmonir/tok-automation/refs/heads/main/results/available_weeks.json";
+  const COMPARISONS_INDEX_URL =
+    "https://raw.githubusercontent.com/smhasnanmonir/tok-automation/refs/heads/main/results/comparisons/index.json";
 
   // State
   let availableWeeks = [];
+  let comparisonsIndex = [];
   let currentComparisonData = null;
 
   // Initialize
@@ -15,6 +18,9 @@ document.addEventListener("DOMContentLoaded", () => {
   async function init() {
     // Load available weeks first
     await loadAvailableWeeks();
+
+    // Load comparisons index
+    await loadComparisonsIndex();
 
     // Then load the default comparison data
     await fetchData();
@@ -34,6 +40,21 @@ document.addEventListener("DOMContentLoaded", () => {
         '<option value="">Week data unavailable</option>';
       document.getElementById("newWeekSelect").innerHTML =
         '<option value="">Week data unavailable</option>';
+    }
+  }
+
+  async function loadComparisonsIndex() {
+    try {
+      const response = await fetch(COMPARISONS_INDEX_URL);
+      if (!response.ok) {
+        console.log("No comparisons index found - will use default comparison");
+        return;
+      }
+      const data = await response.json();
+      comparisonsIndex = data.comparisons || [];
+      console.log("Loaded comparisons:", comparisonsIndex.length);
+    } catch (error) {
+      console.log("Comparisons index not available:", error.message);
     }
   }
 
@@ -115,24 +136,58 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
     document.getElementById("dashboard").style.display = "none";
 
-    // In a real implementation, you would call a backend API to perform the comparison
-    // For now, we'll just show a message that this feature requires backend integration
-    setTimeout(() => {
-      document.getElementById("loading").innerHTML = `
-                <p style="color: var(--text-muted)">
-                    To compare different weeks, you need to run the comparison script on the backend.<br><br>
-                    Selected:<br>
-                    🔴 Old: ${oldWeek.display_name}<br>
-                    🟢 New: ${newWeek.display_name}
-                </p>
-                <p style="margin-top: 1rem; font-size: 0.875rem;">
-                    Run: <code>python compare_pdfs.py compare "${oldWeek.path}" "${newWeek.path}"</code>
-                </p>
-                <button onclick="location.reload()" class="btn-download" style="margin-top: 1rem;">
-                    Reload Current Comparison
-                </button>
-            `;
-    }, 500);
+    // Find the comparison file for this pair
+    const comparisonFile = findComparisonFile(newWeek.date, oldWeek.date);
+
+    if (comparisonFile) {
+      // Load the pre-generated comparison
+      const comparisonUrl = `https://raw.githubusercontent.com/smhasnanmonir/tok-automation/refs/heads/main/results/comparisons/${comparisonFile}`;
+
+      try {
+        const response = await fetch(comparisonUrl);
+        if (!response.ok) throw new Error("Failed to load comparison");
+        const data = await response.json();
+        currentComparisonData = data;
+        renderDashboard(data);
+      } catch (error) {
+        console.error("Error loading comparison:", error);
+        showError(`Failed to load comparison: ${error.message}`);
+      }
+    } else {
+      showError(
+        `No comparison found for ${newWeek.date} vs ${oldWeek.date}. Please run generate-all command.`,
+      );
+    }
+  }
+
+  function findComparisonFile(newDate, oldDate) {
+    // Look for a matching comparison in the index
+    const match = comparisonsIndex.find(
+      (c) => c.new_date === newDate && c.old_date === oldDate,
+    );
+    if (match) return match.filename;
+
+    // Try alternate format (in case dates don't match)
+    for (const comp of comparisonsIndex) {
+      if (comp.new_date.includes(newDate) || newDate.includes(comp.new_date)) {
+        if (
+          comp.old_date.includes(oldDate) ||
+          oldDate.includes(comp.old_date)
+        ) {
+          return comp.filename;
+        }
+      }
+    }
+    return null;
+  }
+
+  function showError(message) {
+    document.getElementById("loading").innerHTML = `
+      <p style="color: var(--danger)">${message}</p>
+      <button onclick="location.reload()" class="btn-download" style="margin-top: 1rem;">
+        Reload Current Comparison
+      </button>
+    `;
   }
 
   async function fetchData() {
