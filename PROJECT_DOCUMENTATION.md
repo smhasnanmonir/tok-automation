@@ -66,7 +66,8 @@ tok-automation/
 │
 ├── WholeSalePriceTrack/
 │   ├── comparepdfs/
-│   │   └── compare_pdfs.py        # Core Python comparison script
+│   │   ├── compare_pdfs.py        # Core Python comparison script
+│   │   └── send_email.py          # Email notification script
 │   │
 │   └── pdfs/
 │       ├── Wholesale Price ( 28-02-2026 ).pdf
@@ -79,10 +80,12 @@ tok-automation/
 │   └── wrangler.jsonc             # Cloudflare Pages config
 │
 ├── results/
-│   ├── comparison_result.json    # Latest comparison data
+│   ├── comparison_result.json         # Latest comparison data
+│   ├── comparison_result_report.pdf   # Auto-generated PDF report
 │   ├── comparison_result_summary.txt
-│   └── available_weeks.json      # List of available PDFs
+│   └── available_weeks.json           # List of available PDFs
 │
+├── GITHUB_SETUP.md               # GitHub secrets configuration
 └── README.md                      # Original README
 ```
 
@@ -160,16 +163,99 @@ Automates the entire process when new PDFs are pushed.
 
 1. **Checkout** - Clones repository with full history (for date tracking)
 2. **Setup Python** - Uses Python 3.11
-3. **Install Dependencies** - Installs `pdfplumber`, `pandas`, `pypdf`
+3. **Install Dependencies** - Installs `pdfplumber`, `pandas`, `pypdf`, `reportlab`
 4. **Find PDFs** - Identifies the 2 most recent PDFs using Git commit dates
-5. **Run Comparison** - Executes the Python comparison script
+5. **Run Comparison** - Executes the Python comparison script (generates JSON + PDF)
 6. **Commit Results** - Saves comparison results to `results/` folder
 7. **Push Changes** - Pushes results back to repository
-8. **Create Summary** - Posts summary to GitHub Actions run
+8. **Send Email** - Sends HTML email with PDF attachment to stakeholders
+9. **Create Summary** - Posts summary to GitHub Actions run
 
 ---
 
-### 3. Frontend Dashboard (`frontend/`)
+### 3. Email Notification System (`send_email.py`)
+
+The system automatically sends professional HTML emails when new price comparisons are generated.
+
+#### How It Works:
+
+1. **Trigger**: After the comparison is complete and results are saved
+2. **Read Data**: The script reads `comparison_result.json` to get summary statistics
+3. **Create Email**: Generates both plain text and HTML versions
+4. **Send**: Uses Python's `smtplib` to send via Gmail SMTP
+
+#### Key Functions:
+
+| Function                                                                           | Purpose                                                 |
+| ---------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| [`send_email_with_attachment()`](WholeSalePriceTrack/comparepdfs/send_email.py:14) | Main function that reads data, creates email, and sends |
+
+#### Email Features:
+
+- **Professional HTML Template**: Clean, modern design with TOK branding
+- **Summary Statistics**: Shows counts for all categories (New, Increased, Decreased, Stock Out, Unchanged)
+- **Color-Coded Cards**: Light background colors for each category
+- **PDF Attachment**: Automatically attaches the generated PDF report
+- **Multi-Recipient**: Sends to multiple stakeholders
+
+#### Recipients (Hardcoded):
+
+```python
+recipients = ['tokbdshop@gmail.com', 'monirhasnan@gmail.com']
+```
+
+#### Email Template Design:
+
+```
+┌─────────────────────────────────────────────┐
+│  TOK Prices Tracker                        │
+│  Wholesale Price Comparison Report         │
+├─────────────────────────────────────────────┤
+│  Comparison: Old PDF → New PDF              │
+├─────────────────────────────────────────────┤
+│  ┌─────────┐ ┌─────────┐ ┌─────────┐       │
+│  │ Newly   │ │ Price   │ │ Price   │       │
+│  │ Added   │ │Increased│ │Decreased│       │
+│  │   25    │ │    5    │ │    1    │       │
+│  └─────────┘ └─────────┘ └─────────┘       │
+│  ┌─────────┐ ┌─────────┐                   │
+│  │ Stock   │ │Unchanged│                   │
+│  │  Out    │ │  803    │                   │
+│  │   41    │ │         │                   │
+│  └─────────┘ └─────────┘                   │
+├─────────────────────────────────────────────┤
+│  Total Products: 875                       │
+│  PDF Report attached to this email          │
+└─────────────────────────────────────────────┘
+```
+
+#### GitHub Secrets Required:
+
+| Secret Name     | Value            | Description                |
+| --------------- | ---------------- | -------------------------- |
+| `SMTP_SERVER`   | `smtp.gmail.com` | SMTP server                |
+| `SMTP_PORT`     | `587`            | SMTP port (TLS)            |
+| `SMTP_USERNAME` | your email       | Gmail address              |
+| `SMTP_PASSWORD` | app password     | 16-char Gmail App Password |
+
+#### Workflow Integration:
+
+The email is sent as the last step in the GitHub Actions workflow:
+
+```yaml
+- name: Send Email Notification
+  if: success()
+  run: python WholeSalePriceTrack/comparepdfs/send_email.py
+  env:
+    SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+    SMTP_PORT: ${{ secrets.SMTP_PORT }}
+    SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+    SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+```
+
+---
+
+### 4. Frontend Dashboard (`frontend/`)
 
 A modern web interface to view comparison results.
 
@@ -236,10 +322,21 @@ The frontend fetches data from:
 ### Step 5: Results Generation
 
 1. Creates `comparison_result.json` with all details
-2. Creates `available_weeks.json` listing all PDFs
-3. Commits and pushes to repository
+2. Creates `comparison_result_report.pdf` with formatted PDF report
+3. Creates `available_weeks.json` listing all PDFs
+4. Commits and pushes to repository
 
-### Step 6: Dashboard Update
+### Step 6: Email Notification
+
+1. Reads the comparison summary from `comparison_result.json`
+2. Creates a professional HTML email with:
+   - TOK branding header
+   - Summary statistics in color-coded cards
+   - Total product count
+3. Attaches the PDF report
+4. Sends to multiple recipients via Gmail SMTP
+
+### Step 7: Dashboard Update
 
 1. Frontend fetches latest JSON from GitHub
 2. Displays results in interactive dashboard
@@ -253,7 +350,9 @@ The frontend fetches data from:
 | --------------- | ---------------- | ----------------------------- |
 | Backend         | Python 3.11+     | PDF processing and comparison |
 | PDF Parsing     | pdfplumber       | Extract tables from PDFs      |
+| PDF Generation  | ReportLab        | Generate PDF reports          |
 | Data Processing | pandas           | Data manipulation             |
+| Email           | Python smtplib   | Send email notifications      |
 | Automation      | GitHub Actions   | CI/CD pipeline                |
 | Frontend        | HTML/CSS/JS      | Web dashboard                 |
 | Hosting         | Cloudflare Pages | Free static hosting           |
@@ -309,7 +408,7 @@ git clone https://github.com/smhasnanmonir/tok-automation.git
 cd tok-automation
 
 # Install Python dependencies
-pip install pdfplumber pandas
+pip install pdfplumber pandas reportlab
 
 # List available PDFs
 python WholeSalePriceTrack/comparepdfs/compare_pdfs.py list
@@ -360,3 +459,5 @@ For issues or questions:
 1. Check the GitHub Actions logs for error details
 2. Verify PDF format matches: `Wholesale Price ( DD-MM-YYYY ).pdf`
 3. Ensure PDF has proper table structure with Brand and Product Name columns
+4. For email issues: Verify GitHub Secrets are configured (see [GITHUB_SETUP.md](GITHUB_SETUP.md))
+5. For Gmail auth errors: Use App Password, not regular password
