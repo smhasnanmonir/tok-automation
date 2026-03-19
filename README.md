@@ -2,23 +2,142 @@
 
 Automated system for tracking and comparing wholesale price lists using GitHub Actions and Python. This tool automatically detects new PDF uploads, compares them with the previous version, and generates detailed reports on price changes, new products, and stock status.
 
-## 🚀 Setup & Installation
+## 🚀 Live Demo
 
-### Step 1: Install Git LFS
-Since PDF files can be large and binary, we use Git Large File Storage (LFS) to manage them efficiently.
+Visit the dashboard at: **https://auto.tokbd.com**
 
-**Ubuntu/Debian**
-```bash
-sudo apt install git-lfs
+## 📋 Overview
+
+TOK Wholesale Price Tracker automates pricing analysis for wholesale products. Instead of manually comparing large PDF price lists (often containing 800+ products across 50+ pages), the system:
+
+1. **Automatically detects** when new price PDFs are uploaded
+2. **Extracts product data** from PDF tables
+3. **Compares prices** between two time periods
+4. **Generates reports** showing:
+   - 📦 New products added
+   - 📈 Price increases
+   - 📉 Price decreases
+   - ❌ Stock outs (products no longer available)
+5. **Provides a web dashboard** to visualize all changes
+
+---
+
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     TOK Price Tracker System                     │
+├─────────────────────────────────────────────────────────────────┤
+│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐       │
+│  │   PDF Files  │───▶│   Python     │───▶│   Results    │       │
+│  │  (Source)    │    │   Script     │    │   (JSON)     │       │
+│  └──────────────┘    └──────────────┘    └──────────────┘       │
+│         │                   │                   │               │
+│         ▼                   ▼                   ▼               │
+│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐       │
+│  │  Wholesale   │    │  compare_    │    │  comparison  │       │
+│  │  Price PDFs  │    │  pdfs.py     │    │  _result.json│       │
+│  └──────────────┘    └──────────────┘    └──────────────┘       │
+│                                                 │               │
+│                                                 ▼               │
+│                                          ┌──────────────┐       │
+│                                          │   Frontend   │       │
+│                                          │   Dashboard  │       │
+│                                          └──────────────┘       │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-**CentOS/RHEL**
+---
+
+## 📂 Project Structure
+
+```
+tok-automation/
+├── .github/
+│   └── workflows/
+│       └── pdf-comparison.yml    # GitHub Actions automation
+│
+├── WholeSalePriceTrack/
+│   ├── comparepdfs/
+│   │   └── compare_pdfs.py        # Core Python comparison script
+│   │
+│   └── pdfs/
+│       ├── Wholesale Price ( 28-02-2026 ).pdf
+│       ├── Wholesale Price ( 21-02-2026 ) (1).pdf
+│       ├── Wholesale Price ( 15-02-2026 ).pdf
+│       └── Wholesale Price ( 07-03-2026 ).pdf
+│
+├── frontend/
+│   ├── index.html                # Dashboard HTML
+│   ├── index.js                  # Dashboard JavaScript
+│   ├── index.css                 # Dashboard Styles
+│   └── wrangler.jsonc             # Cloudflare Pages config
+│
+├── results/
+│   ├── comparison_result.json    # Latest comparison data
+│   ├── available_weeks.json       # List of available PDFs
+│   └── comparisons/               # All comparison files
+│       └── *.json
+│
+├── PROJECT_DOCUMENTATION.md       # Detailed documentation
+├── DEPLOYMENT_GUIDE.md            # Deployment instructions
+└── README.md                      # This file
+```
+
+---
+
+## ⚙️ How It Works
+
+### 1. PDF Detection
+
+The system automatically detects when a new PDF is uploaded to the `WholeSalePriceTrack/pdfs/` directory.
+
+- It scans the directory for all `.pdf` files.
+- **Sorting Logic:** Uses **Git commit history** (not filesystem timestamps)
+- The most recent commit = **New PDF**
+- Second most recent = **Old PDF**
+
+### 2. Comparison Process
+
+A GitHub Actions workflow (`pdf-comparison.yml`) triggers automatically on every push to the PDF folder.
+
+1. **Extract Data:** The Python script (`compare_pdfs.py`) reads both PDFs using `pdfplumber`.
+2. **Analyze columns:** Intelligently identifies columns for Brand, Product Name, and Wholesale Prices.
+3. **Compare:** Matches products based on Brand and Name to calculate:
+   - 📦 **Newly Added products**
+   - 📈 **Price Increases**
+   - 📉 **Price Decreases**
+   - ❌ **Stock Outs**
+
+### 3. Results & Notifications
+
+- **JSON Report:** Detailed `comparison_result.json` in `results/` folder
+- **Workflow Summary:** Visual summary posted to GitHub Actions run
+- **Auto-commit:** Results automatically committed back to repository
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Python 3.11+
+- Node.js 18+ (for Wrangler deployment)
+- Git with LFS configured
+
+### Step 1: Install Git LFS
+
+Since PDF files are large (~130MB each), we use Git Large File Storage.
+
 ```bash
+# Ubuntu/Debian
+sudo apt install git-lfs
+
+# CentOS/RHEL
 sudo yum install git-lfs
 ```
 
 ### Step 2: Prepare Your Repository
-Initialize LFS and configure it to track PDF files.
 
 ```bash
 git lfs install           # Enable LFS
@@ -26,39 +145,148 @@ git lfs track "*.pdf"     # Auto-handle all PDFs via LFS
 git add .gitattributes    # Commit tracking rules FIRST
 ```
 
-## ⚙️ How It Works
+### Step 3: Install Python Dependencies
 
-### 1. PDF Detection
-The system is designed to automatically detect when a new PDF is uploaded to the `WholeSalePriceTrack/pdfs/` directory.
-- It scans the directory for all `.pdf` files.
-- **Sorting Logic:** Instead of relying on filesystem timestamps (which reset in CI environments), it uses **Git commit history**.
-    - The file with the most recent commit timestamp is identified as the **New PDF**.
-    - The file with the second most recent commit timestamp is identified as the **Old PDF**.
+```bash
+pip install pdfplumber pandas
+```
 
-### 2. Comparison Process
-A GitHub Actions workflow (`pdf-comparison.yml`) triggers automatically on every push to the PDF folder.
-1.  **Extract Data:** The Python script (`compare_pdfs.py`) reads both PDFs using `pdfplumber`.
-2.  **Analyze columns:** It intelligently identifies columns for Brand, Product Name, and Wholesale Prices.
-3.  **Compare:** It matches products based on Brand and Name to calculate:
-    - 📦 **Newly Added products**
-    - 📈 **Price Increases**
-    - 📉 **Price Decreases**
-    - ❌ **Stock Outs** (Items present in the old PDF but missing in the new one)
+### Step 4: Run Commands
 
-### 3. Results & Notifications
-- **JSON Report:** A detailed `comparison_result.json` is generated in the `results/` folder.
-- **Workflow Summary:** A visual summary is posted directly to the GitHub Actions run summary.
-- **Commit:** The results are automatically committed back to the repository.
+```bash
+# List all available PDFs
+python WholeSalePriceTrack/comparepdfs/compare_pdfs.py list
 
-## 📂 Project Structure
+# Compare two specific PDFs
+python WholeSalePriceTrack/comparepdfs/compare_pdfs.py compare \
+  "WholeSalePriceTrack/pdfs/Wholesale Price ( 15-02-2026 ).pdf" \
+  "WholeSalePriceTrack/pdfs/Wholesale Price ( 21-02-2026 ) (1).pdf"
+
+# Generate all comparisons (for frontend multi-week selection)
+python WholeSalePriceTrack/comparepdfs/compare_pdfs.py generate-all
+
+# Update available weeks for frontend
+python WholeSalePriceTrack/comparepdfs/compare_pdfs.py generate-weeks
+```
+
+---
+
+## 🖥️ Frontend Dashboard Features
+
+- **Week Selection**: Choose any two weeks to compare
+- **Statistics Dashboard**: Shows counts of new, increased, decreased, and stock-out products
+- **Product Cards**: Detailed view with price information
+- **Search**: Filter products by brand or name
+- **Download**: Export comparison data as JSON
+- **Responsive Design**: Works on desktop and mobile
+
+---
+
+## 🛠️ Technology Stack
+
+| Layer           | Technology       | Purpose                       |
+| --------------- | ---------------- | ----------------------------- |
+| Backend         | Python 3.11+     | PDF processing and comparison |
+| PDF Parsing     | pdfplumber       | Extract tables from PDFs      |
+| Data Processing | pandas           | Data manipulation             |
+| Automation      | GitHub Actions   | CI/CD pipeline                |
+| Frontend        | HTML/CSS/JS      | Web dashboard                 |
+| Hosting         | Cloudflare Pages | Free static hosting           |
+| Storage         | Git LFS          | Large file storage for PDFs   |
+
+---
+
+## 📦 Deploying Frontend
+
+### Using Wrangler CLI
+
+```bash
+# Login to Cloudflare
+cd frontend
+npx wrangler login
+
+# Deploy
+npx wrangler pages deploy . --project-name=automation
+```
+
+### Important: Exclude Large Files
+
+The `wrangler.jsonc` excludes large PDF files (Cloudflare Pages has 25MB limit):
+
+```jsonc
+{
+  "name": "automation",
+  "compatibility_date": "2026-02-08",
+  "pages_build_output_dir": "./",
+  "exclude": [
+    "WholeSalePriceTrack/**",
+    "results/**",
+    ".github/**",
+    "*.md",
+    "*.py",
+    "*.yml",
+    "*.jsonc",
+  ],
+}
+```
+
+---
+
+## 📊 Example Output
+
+### Comparison Summary:
 
 ```
-.
-├── .github/workflows/
-│   └── pdf-comparison.yml    # CI/CD Automation logic
-├── WholeSalePriceTrack/
-│   ├── comparepdfs/
-│   │   └── compare_pdfs.py   # Python comparison logic
-│   └── pdfs/                 # Store your Price list PDFs here
-└── results/                  # Generated comparison outputs
+Old PDF: Wholesale Price ( 28-02-2026 ).pdf (861 products)
+New PDF: Wholesale Price ( 07-03-2026 ).pdf (841 products)
+
+Newly Added: 25 products
+Price Increased: 1 products
+Price Decreased: 1 products
+Stock Out: 46 products
+Unchanged: 803 products
 ```
+
+### Product Card:
+
+```json
+{
+  "brand": "SAMSUNG",
+  "product_name": "Galaxy A16 8GB",
+  "old_wholesale_price_for_you": "22,500",
+  "new_wholesale_price_for_you": "23,000",
+  "price_difference": 500,
+  "percentage_change": 2.22
+}
+```
+
+---
+
+## 🔧 Troubleshooting
+
+| Error                                    | Solution                                                            |
+| ---------------------------------------- | ------------------------------------------------------------------- |
+| "Pages only supports files up to 25 MiB" | Ensure `wrangler.jsonc` has exclude config                          |
+| "Failed to fetch auth token"             | Run `npx wrangler login`                                            |
+| "Unknown command"                        | Use `compare` command: `python compare_pdfs.py compare <old> <new>` |
+| "Week data unavailable"                  | Run `python compare_pdfs.py generate-weeks`                         |
+| Cannot select different weeks            | Run `python compare_pdfs.py generate-all`                           |
+
+---
+
+## 📝 License
+
+This project is for internal use by TOK (tokbd.shop).
+
+---
+
+## 👤 Author
+
+Developed for TOK Bangladesh - Your Trusted Online Shopping Destination
+
+---
+
+## 📚 More Documentation
+
+- [PROJECT_DOCUMENTATION.md](PROJECT_DOCUMENTATION.md) - Detailed technical documentation
+- [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) - Complete deployment instructions

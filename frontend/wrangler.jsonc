@@ -1,5 +1,15 @@
 {
   "name": "automation",
   "compatibility_date": "2026-02-08",
-  "pages_build_output_dir": "./"
+  "pages_build_output_dir": "./",
+  "exclude": [
+    "WholeSalePriceTrack/**",
+    "results/**",
+    ".github/**",
+    "*.md",
+    "*.py",
+    "*.yml",
+    "*.jsonc",
+    "!.gitignore",
+  ],
 }
