@@ -429,12 +429,11 @@ def generate_pdf_report(comparison_result, output_pdf='results/comparison_report
             ]
         else:
             # Column widths without Change column (for NEWLY ADDED and STOCK OUT)
-            col_widths = [60, 300, 80, 80]
+            col_widths = [60, 350, 100]
             headers = [
                 Paragraph('<b>Brand</b>', styles['Normal']),
                 Paragraph('<b>Product Name</b>', styles['Normal']),
-                Paragraph('<b>Price</b>', styles['Normal']),
-                Paragraph('<b>Page</b>', styles['Normal'])
+                Paragraph('<b>Price</b>', styles['Normal'])
             ]
         
         # Split into pages if too many products
@@ -475,12 +474,10 @@ def generate_pdf_report(comparison_result, output_pdf='results/comparison_report
                 else:
                     # No price change columns (for NEWLY ADDED and STOCK OUT)
                     price = str(p.get('wholesale_price_for_you', 'N/A'))
-                    page_num = str(p.get('page', '-'))
                     table_data.append([
                         brand_cell,
                         product_cell,
-                        Paragraph(price, ParagraphStyle('n', fontSize=7)),
-                        Paragraph(page_num, ParagraphStyle('n', fontSize=7))
+                        Paragraph(price, ParagraphStyle('n', fontSize=7))
                     ])
             
             if len(table_data) > 1:
