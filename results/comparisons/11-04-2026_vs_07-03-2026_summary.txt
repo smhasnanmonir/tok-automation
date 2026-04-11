@@ -2,11 +2,11 @@ PDF COMPARISON SUMMARY
 ================================================================================
 
 Old PDF: WholeSalePriceTrack/pdfs/Wholesale Price ( 07-03-2026 ).pdf (841 products)
-New PDF: WholeSalePriceTrack/pdfs/Bulk Wholesale Price (04-04-2026) (1).pdf (15 products)
-Comparison Date: 2026-04-11 23:09:43
+New PDF: WholeSalePriceTrack/pdfs/Bulk Wholesale Price (11-04-2026).pdf (888 products)
+Comparison Date: 2026-04-11 23:08:51
 
-Newly Added: 0 products
+Newly Added: 164 products
 Price Increased: 0 products
 Price Decreased: 0 products
-Stock Out: 813 products
-Unchanged: 15 products
+Stock Out: 116 products
+Unchanged: 712 products
