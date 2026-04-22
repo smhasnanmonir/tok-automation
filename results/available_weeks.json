@@ -41,7 +41,13 @@
       "path": "WholeSalePriceTrack/pdfs/Wholesale Price ( 15-02-2026 ).pdf",
       "date": "15-02-2026",
       "display_name": "Week of 15-02-2026"
+    },
+    {
+      "filename": "Bulk Wholesale Price-(18-4-2026).pdf",
+      "path": "WholeSalePriceTrack/pdfs/Bulk Wholesale Price-(18-4-2026).pdf",
+      "date": "Bulk Wholesale Price-(18-4-2026).pdf",
+      "display_name": "Bulk Wholesale Price-(18-4-2026).pdf"
     }
   ],
-  "generated_at": "2026-04-11T23:08:21.226355"
+  "generated_at": "2026-04-22T04:20:41.693400"
 }

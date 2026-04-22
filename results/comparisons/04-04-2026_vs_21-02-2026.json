@@ -2,20 +2,132 @@
   "metadata": {
     "old_pdf": "WholeSalePriceTrack/pdfs/Wholesale Price ( 21-02-2026 ) (1).pdf",
     "new_pdf": "WholeSalePriceTrack/pdfs/Bulk Wholesale Price (04-04-2026) (1).pdf",
-    "comparison_date": "2026-04-11T23:10:04.656122",
+    "comparison_date": "2026-04-22T04:22:57.616841",
     "old_pdf_total_products": 900,
     "new_pdf_total_products": 15,
     "summary": {
       "newly_added_count": 0,
-      "price_increased_count": 0,
-      "price_decreased_count": 0,
+      "price_increased_count": 2,
+      "price_decreased_count": 9,
       "stock_out_count": 873,
-      "unchanged_count": 15
+      "unchanged_count": 4
     }
   },
   "newly_added_products": [],
-  "price_increased_products": [],
-  "price_decreased_products": [],
+  "price_increased_products": [
+    {
+      "brand": "AESTURA",
+      "product_name": "Atobarrier 365 Cream - 30ml",
+      "old_wholesale_price": "410",
+      "old_wholesale_price_for_you": "390",
+      "new_wholesale_price": "400",
+      "new_wholesale_price_for_you": "400",
+      "price_difference": 10.0,
+      "percentage_change": 2.56
+    },
+    {
+      "brand": "AESTURA",
+      "product_name": "Atobarrier 365 Lotion - 30ml",
+      "old_wholesale_price": "410",
+      "old_wholesale_price_for_you": "390",
+      "new_wholesale_price": "400",
+      "new_wholesale_price_for_you": "400",
+      "price_difference": 10.0,
+      "percentage_change": 2.56
+    }
+  ],
+  "price_decreased_products": [
+    {
+      "brand": "ACWELL",
+      "product_name": "Licorice pH Balancing Cleansing Toner - 150ml",
+      "old_wholesale_price": "1200",
+      "old_wholesale_price_for_you": "1180",
+      "new_wholesale_price": "1170",
+      "new_wholesale_price_for_you": "1170",
+      "price_difference": 10.0,
+      "percentage_change": 0.85
+    },
+    {
+      "brand": "AESTURA",
+      "product_name": "Atobarrier 365 Cream - 80ml",
+      "old_wholesale_price": "2050",
+      "old_wholesale_price_for_you": "2030",
+      "new_wholesale_price": "2010",
+      "new_wholesale_price_for_you": "2010",
+      "price_difference": 20.0,
+      "percentage_change": 0.99
+    },
+    {
+      "brand": "AESTURA",
+      "product_name": "Atobarrier 365 Lotion - 150ml",
+      "old_wholesale_price": "2210",
+      "old_wholesale_price_for_you": "2190",
+      "new_wholesale_price": "2150",
+      "new_wholesale_price_for_you": "2150",
+      "price_difference": 40.0,
+      "percentage_change": 1.83
+    },
+    {
+      "brand": "AESTURA",
+      "product_name": "Derma UV365 Barrier Hydro Mineral Sunscreen - 20ml",
+      "old_wholesale_price": "350",
+      "old_wholesale_price_for_you": "330",
+      "new_wholesale_price": "320",
+      "new_wholesale_price_for_you": "320",
+      "price_difference": 10.0,
+      "percentage_change": 3.03
+    },
+    {
+      "brand": "ABIB",
+      "product_name": "Pore Cleansing Oil Heartleaf Oil-Wash - 200ml",
+      "old_wholesale_price": "1620",
+      "old_wholesale_price_for_you": "1600",
+      "new_wholesale_price": "1560",
+      "new_wholesale_price_for_you": "1560",
+      "price_difference": 40.0,
+      "percentage_change": 2.5
+    },
+    {
+      "brand": "ABIB",
+      "product_name": "Heartleaf Essence Calming Pump - 50ml",
+      "old_wholesale_price": "1390",
+      "old_wholesale_price_for_you": "1370",
+      "new_wholesale_price": "1350",
+      "new_wholesale_price_for_you": "1350",
+      "price_difference": 20.0,
+      "percentage_change": 1.46
+    },
+    {
+      "brand": "ABIB",
+      "product_name": "Heartleaf TECA Capsule Serum - 50ml",
+      "old_wholesale_price": "1810",
+      "old_wholesale_price_for_you": "1790",
+      "new_wholesale_price": "1750",
+      "new_wholesale_price_for_you": "1750",
+      "price_difference": 40.0,
+      "percentage_change": 2.23
+    },
+    {
+      "brand": "ABIB",
+      "product_name": "Heartleaf Creme Calming Tube - 75ml",
+      "old_wholesale_price": "1190",
+      "old_wholesale_price_for_you": "1170",
+      "new_wholesale_price": "1150",
+      "new_wholesale_price_for_you": "1150",
+      "price_difference": 20.0,
+      "percentage_change": 1.71
+    },
+    {
+      "brand": "ABIB",
+      "product_name": "Quick Sunstick Protection Bar (SPF50+ PA++++) - 22g",
+      "old_wholesale_price": "1370",
+      "old_wholesale_price_for_you": "1350",
+      "new_wholesale_price": "1340",
+      "new_wholesale_price_for_you": "1340",
+      "price_difference": 10.0,
+      "percentage_change": 0.74
+    }
+  ],
   "stock_out_products": [
     {
       "brand": "AXIS-Y",
