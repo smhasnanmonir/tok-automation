@@ -27,143 +27,6 @@ PRODUCT_NAME_CLEANUP_PATTERNS = [
 ]
 
 
-def _norm_header_cell(s):
-    if s is None or (isinstance(s, float) and str(s) == 'nan'):
-        return ''
-    return re.sub(r'\s+', ' ', str(s).strip().lower())
-
-
-def _merge_header_rows(row_a, row_b):
-    """Merge two table header lines (e.g. 'Total|Quantity' on row 1, 'Bulk Wholesale Price' on row 2)."""
-    n = max(len(row_a or []), len(row_b or []))
-    row_a = list(row_a or []) + [None] * (n - len(row_a or []))
-    row_b = list(row_b or []) + [None] * (n - len(row_b or []))
-    merged = []
-    for a, b in zip(row_a, row_b):
-        sa = (str(a).strip() if a is not None and str(a) != 'None' else '') or ''
-        sb = (str(b).strip() if b is not None and str(b) != 'None' else '') or ''
-        if not sa:
-            merged.append(sb if sb else None)
-        elif not sb:
-            merged.append(sa)
-        else:
-            na, nb = _norm_header_cell(sa), _norm_header_cell(sb)
-            if na == nb or na in nb or nb in na:
-                merged.append(sa)
-            else:
-                merged.append(f'{sa} {sb}'.strip())
-    return merged
-
-
-def _make_unique_columns(headers):
-    """Avoid duplicate/empty pandas column names from PDF tables."""
-    seen = {}
-    out = []
-    for i, h in enumerate(headers):
-        base = (str(h).strip() if h is not None and str(h) not in ('None', 'nan') else '') or f'col_{i}'
-        if base in seen:
-            seen[base] += 1
-            out.append(f'{base}_{seen[base]}')
-        else:
-            seen[base] = 0
-            out.append(base)
-    return out
-
-
-def resolve_columns_from_header(headers):
-    """
-    Map logical fields to column names by header text (old + new PDF layouts).
-    Returns (brand_col, product_col, list_price_col, compare_price_col).
-    list / compare may be the same for single-price layouts (e.g. Bulk Wholesale Price).
-    """
-    resolved = {h: _norm_header_cell(h) for h in headers}
-
-    def pick(predicate):
-        for h in headers:
-            if h is None:
-                continue
-            if predicate(resolved.get(h, '')):
-                return h
-        return None
-
-    brand_col = pick(lambda t: 'brand' in t and 'product' not in t)
-    if not brand_col:
-        brand_col = pick(lambda t: t == 'brand' or t.strip() == 'brand')
-
-    product_col = pick(
-        lambda t: ('product' in t and 'name' in t) or t in ('product name', 'product')
-    )
-    if not product_col:
-        product_col = pick(lambda t: 'product' in t and 'brand' not in t and 'image' not in t)
-
-    for_you = pick(
-        lambda t: 'wholesale' in t
-        and (
-            'you' in t
-            or 'for you' in t
-            or (' for ' in t and 'you' in t)
-        )
-    )
-    normal_wholesale = pick(
-        lambda t: 'wholesale' in t
-        and 'normal' in t
-        and 'you' not in t
-        and 'for you' not in t
-    )
-    bulk = pick(
-        lambda t: 'wholesale' in t
-        and 'bulk' in t
-    )
-
-    wholesale_non_bulk = [
-        h for h in headers
-        if h is not None
-        and 'wholesale' in resolved.get(h, '')
-        and 'bulk' not in resolved.get(h, '')
-    ]
-
-    if len(wholesale_non_bulk) == 1 and not for_you and not normal_wholesale:
-        single = wholesale_non_bulk[0]
-        t = resolved.get(single, '')
-        if 'you' in t or 'for you' in t:
-            for_you = single
-        elif 'normal' in t:
-            normal_wholesale = single
-        else:
-            bulk = bulk or single
-
-    compare_col = for_you or bulk or normal_wholesale
-    if not compare_col and brand_col and product_col:
-        compare_col = pick(
-            lambda t: 'price' in t
-            and t != _norm_header_cell(brand_col)
-            and 'image' not in t
-        )
-
-    list_col = normal_wholesale or compare_col
-
-    return brand_col, product_col, list_col, compare_col
-
-
-def _table_to_dataframe(table, header_start=0, merge_with_next=False):
-    """Build a DataFrame; optionally merge first two rows into one header row."""
-    if not table or len(table) < 2:
-        return None
-    if merge_with_next and len(table) < 3:
-        return None
-    if merge_with_next:
-        head = _make_unique_columns(
-            _merge_header_rows(table[header_start], table[header_start + 1])
-        )
-        body = table[header_start + 2 :]
-    else:
-        head = _make_unique_columns(table[header_start])
-        body = table[header_start + 1 :]
-    if not head or not body:
-        return None
-    return pd.DataFrame(body, columns=head)
-
-
 def cleanup_product_name(product_name):
     """Remove promotional text from product name for consistent comparison"""
     cleaned = product_name
@@ -207,7 +70,7 @@ def get_all_pdfs(pdf_dir='WholeSalePriceTrack/pdfs'):
 
 
 def extract_products_from_pdf(pdf_path):
-    """Extract products from PDF using header name matching (old + new column layouts)."""
+    """Extract products from PDF"""
     all_products = []
 
     try:
@@ -222,48 +85,43 @@ def extract_products_from_pdf(pdf_path):
                         if not table or len(table) < 2:
                             continue
 
-                        best = None
-                        for merge_headers in (False, True):
-                            cand = _table_to_dataframe(table, 0, merge_headers)
-                            if cand is None:
-                                continue
-                            bc, pc, lc, cc = resolve_columns_from_header(
-                                [str(c) for c in cand.columns]
-                            )
-                            score = (1 if bc else 0) + (1 if pc else 0) + (2 if cc else 0)
-                            if best is None or score > best[0]:
-                                best = (score, cand, bc, pc, lc, cc)
-                            if score == 4:
-                                break
+                        df = pd.DataFrame(table[1:], columns=table[0])
 
-                        if not best:
-                            continue
-                        _, df, brand_col, product_col, list_col, compare_col = best
-                        if not brand_col or not product_col or not compare_col:
-                            continue
+                        # Find columns
+                        brand_col = None
+                        product_col = None
+                        normal_price_col = None
+                        wholesale_price_col = None
 
-                        for _, row in df.iterrows():
-                            brand = str(row.get(brand_col, '')).strip()
-                            product_name = str(row.get(product_col, '')).strip()
+                        for col in df.columns:
+                            col_lower = str(col).lower()
+                            if 'brand' in col_lower:
+                                brand_col = col
+                            elif 'product' in col_lower and 'name' in col_lower:
+                                product_col = col
+                            elif 'normal' in col_lower and 'wholesale' in col_lower:
+                                normal_price_col = col
+                            elif 'wholesale' in col_lower and 'you' in col_lower:
+                                wholesale_price_col = col
 
-                            if brand and product_name and brand != 'nan' and product_name != 'nan':
-                                list_price = (
-                                    str(row.get(list_col, '')).strip() if list_col else ''
-                                )
-                                comp_price = str(row.get(compare_col, '')).strip()
-                                if not list_price and list_col == compare_col:
-                                    list_price = comp_price
-                                if not list_price and comp_price:
-                                    list_price = comp_price
+                        # Extract products
+                        if brand_col and product_col:
+                            for _, row in df.iterrows():
+                                brand = str(row.get(brand_col, '')).strip()
+                                product_name = str(row.get(product_col, '')).strip()
 
-                                product = {
-                                    "brand": brand,
-                                    "product_name": product_name,
-                                    "wholesale_price": list_price,
-                                    "wholesale_price_for_you": comp_price,
-                                    "page": i,
-                                }
-                                all_products.append(product)
+                                if brand and product_name and brand != 'nan' and product_name != 'nan':
+                                    normal_price = str(row.get(normal_price_col, '')).strip() if normal_price_col else ''
+                                    wholesale_price = str(row.get(wholesale_price_col, '')).strip() if wholesale_price_col else ''
+
+                                    product = {
+                                        "brand": brand,
+                                        "product_name": product_name,
+                                        "wholesale_price": normal_price,
+                                        "wholesale_price_for_you": wholesale_price,
+                                        "page": i
+                                    }
+                                    all_products.append(product)
 
                 if (i % 10 == 0):
                     print(f"  Processed {i}/{len(pdf.pages)} pages")
