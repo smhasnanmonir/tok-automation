@@ -87,7 +87,7 @@ def extract_products_from_pdf(pdf_path):
 
                         df = pd.DataFrame(table[1:], columns=table[0])
 
-                        # Find columns
+                        # Find columns - support multiple PDF formats
                         brand_col = None
                         product_col = None
                         normal_price_col = None
@@ -100,9 +100,18 @@ def extract_products_from_pdf(pdf_path):
                             elif 'product' in col_lower and 'name' in col_lower:
                                 product_col = col
                             elif 'normal' in col_lower and 'wholesale' in col_lower:
+                                # Old format: "Normal Wholesale Price"
                                 normal_price_col = col
                             elif 'wholesale' in col_lower and 'you' in col_lower:
+                                # Old format: "Wholesale Price For You"
                                 wholesale_price_col = col
+                            elif 'bulk' in col_lower and 'wholesale' in col_lower:
+                                # New format: "Bulk Wholesale Price"
+                                wholesale_price_col = col
+                            elif 'wholesale' in col_lower and 'price' in col_lower:
+                                # Generic: "Wholesale Price" (catch-all if no specific match)
+                                if not wholesale_price_col:
+                                    wholesale_price_col = col
 
                         # Extract products
                         if brand_col and product_col:
@@ -113,6 +122,19 @@ def extract_products_from_pdf(pdf_path):
                                 if brand and product_name and brand != 'nan' and product_name != 'nan':
                                     normal_price = str(row.get(normal_price_col, '')).strip() if normal_price_col else ''
                                     wholesale_price = str(row.get(wholesale_price_col, '')).strip() if wholesale_price_col else ''
+
+                                    # If there's only one price column, use it as the "for you" price
+                                    if not wholesale_price and not normal_price:
+                                        # No price columns found at all
+                                        pass
+                                    elif not wholesale_price and normal_price:
+                                        # Only normal price found, use it as both
+                                        wholesale_price = normal_price
+                                        normal_price = ''
+                                    elif wholesale_price and not normal_price:
+                                        # Only one wholesale price column found (new format)
+                                        # Keep wholesale_price as the "for you" price
+                                        pass
 
                                     product = {
                                         "brand": brand,
