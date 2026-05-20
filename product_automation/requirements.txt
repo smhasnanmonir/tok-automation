@@ -1,0 +1,14 @@
+# TOK Product Automation - Python Dependencies
+
+# Core
+requests>=2.31.0
+python-dotenv>=1.0.0
+
+# Excel handling
+openpyxl>=3.1.2
+
+# Web scraping / image search
+playwright>=1.40.0
+
+# Image processing
+Pillow>=10.0.0
