@@ -4,13 +4,14 @@ Features:
 - Auto-login by sending OTP request to monirhasnan@gmail.com
 - OTP input screen
 - Excel file selection
-- Google Images search & download (Playwright)
+- Google Images search & download (MechanicalSoup)
 - AI-generated product details (OpenRouter)
 - Product posting with image upload to backend (R2)
 """
 
 import sys
 import os
+import re
 import time
 import base64
 import io
@@ -21,7 +22,6 @@ from typing import Optional
 import aiohttp
 import requests
 from dotenv import load_dotenv
-from playwright.sync_api import sync_playwright
 
 # Production URLs
 PRODUCTION_API_BASE = "https://backend.tokbd.com"
@@ -38,110 +38,154 @@ from ai_service import generate_product_details
 from config import config, sanitize_slug
 
 
-def upload_image_to_r2(
-    image_file: bytes,
-    product_id: int | None = None,
-) -> str | None:
+def upload_image_to_backend(filepath: Path, auth_headers: dict) -> str | None:
     """
-    Upload image to TokBD R2 storage.
-    
-    This mimics the upload functionality from the frontend ProductPage.
-    Uploads directly to Cloudflare R2 and returns the public URL.
-    
+    Upload a local image file to the backend product upload API.
+
     Args:
-        image_file: Binary image data (bytes)
-        product_id: Optional product ID (used in filename)
-    
+        filepath: Path to the local image file
+        auth_headers: Authorization headers
+
     Returns:
-        Public URL of the uploaded image, or None if failed
+        The public URL of the uploaded image, or None if failed
     """
-    # Generate unique filename with timestamp
-    timestamp = time.strftime("%Y%m%d_%H%M%S")
-    random_suffix = "".join(random.choices("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789", k=8))
-    
-    # Determine file extension
-    if hasattr(image_file, 'name'):
-        file_ext = Path(image_file.name).suffix.lower()
-    else:
-        file_ext = ".jpg"  # Default
-    
-    filename = f"{product_id}-{timestamp}-{random_suffix}{file_ext}" if product_id else f"{timestamp}-{random_suffix}{file_ext}"
-    
-    # Upload directly to R2 bucket
-    url = f"https://{R2_BUCKET}.r2.cloudflarestorage.com/{filename}"
-    
-    # Create session with auth token
-    session = aiohttp.ClientSession(headers=config.auth_headers)
-    
+    print(f"  [TUI] Uploading image {filepath.name} to backend...")
     try:
-        # Use synchronous request for simplicity
-        with session.put(url, data=image_file, headers={"Content-Type": "image/jpeg"}, timeout=aiohttp.ClientTimeout(total=60)) as resp:
-            resp.raise_for_status()
-            return url
+        url = config.upload_image_url
+        with open(filepath, "rb") as f:
+            files = {"file": (filepath.name, f, "image/jpeg")}
+            # Remove Content-Type from headers so requests can generate the boundary automatically
+            headers = {k: v for k, v in auth_headers.items() if k.lower() != "content-type"}
+            response = requests.post(url, headers=headers, files=files, timeout=30)
+            response.raise_for_status()
+
+            result = response.json()
+            if result.get("success") and "data" in result and "url" in result["data"]:
+                public_url = result["data"]["url"]
+                print(f"  [TUI] ✓ Image uploaded successfully: {public_url}")
+                return public_url
+            else:
+                print(f"  [TUI] ⚠ Upload response did not indicate success: {result}")
     except Exception as e:
-        print(f"[!] Image upload failed: {e}")
-        return None
-    finally:
-        session.close()
+        print(f"  [TUI] ⚠ Image upload to backend failed: {e}")
+    return None
+
+
+def _extract_brand(product_name: str) -> str:
+    """Extract likely brand name from the first word of a product name."""
+    parts = product_name.strip().split()
+    if parts:
+        # First word is typically the brand (e.g. "CeraVe", "Cetaphil")
+        return parts[0]
+    return "Unknown"
 
 
 def format_product_data(product, ai_data: dict) -> dict:
     """Format product data for backend API. Accepts ProductRow or dict."""
+    def clean_list(val, default_list):
+        if not val:
+            return default_list
+        if isinstance(val, list):
+            res = [str(v).strip() for v in val if str(v).strip()]
+            return res if res else default_list
+        if isinstance(val, str):
+            res = [v.strip() for v in val.split(",") if v.strip()]
+            return res if res else default_list
+        return default_list
+
+    sizes = clean_list(ai_data.get("sizes"), ["1"])
+    how_to_use = clean_list(ai_data.get("how_to_use"), ["Cleanse skin", "Apply product", "Massage gently"])
+    benefits = clean_list(ai_data.get("benefits"), ["Provides hydration", "Improves skin texture"])
+
+    p_name = product.name if hasattr(product, 'name') else product.get("name", "Product")
+    description = ai_data.get("description")
+    if not description or len(str(description).strip()) < 10:
+        description = f"High-quality {p_name} for premium skincare, designed to hydrate and revitalize."
+    else:
+        description = str(description).strip()
+
+    key_ingredient = ai_data.get("key_ingredient")
+    if not key_ingredient or not str(key_ingredient).strip():
+        key_ingredient = "Premium ingredients"
+    else:
+        key_ingredient = str(key_ingredient).strip()
+
     if hasattr(product, 'name'):
         p = product
+        # Derive brand/category: use product fields, then AI data, then extract from name
+        brand = p.brand or ai_data.get("brand", "") or _extract_brand(p.name)
+        category = p.category or ai_data.get("category", "") or "Skincare"
+        skin_type = p.skin_type or ai_data.get("skin_type", "All") or "All"
+        skin_concern = p.skin_concern or ai_data.get("skin_concern", "All") or "All"
+        # Handle skin_type/skin_concern that may be lists from AI
+        if isinstance(skin_type, list):
+            skin_type = ", ".join(skin_type)
+        if isinstance(skin_concern, list):
+            skin_concern = ", ".join(skin_concern)
+        card_photo = p.data.get("card_photo", "https://cdn.tokbd.shop/logo/tok-logo.jpg")
+        img = p.data.get("img", "https://cdn.tokbd.shop/logo/tok-logo.jpg")
         return {
             "products": {
                 "name": p.name,
                 "slug": sanitize_slug(p.name),
-                "brand": p.brand or "",
-                "brand_slug": sanitize_slug(p.brand) if p.brand else sanitize_slug(p.name),
-                "card_photo": p.data.get("card_photo", ""),
-                "img": p.data.get("img", ""),
+                "brand": brand,
+                "brand_slug": sanitize_slug(brand),
+                "card_photo": card_photo,
+                "img": img,
                 "price": p.price,
                 "origin_price": p.origin_price,
-                "category": p.category or "",
-                "category_slug": sanitize_slug(p.category) if p.category else sanitize_slug(p.name),
-                "skin_type": p.skin_type or "",
-                "skin_concern": p.skin_concern or "",
-                "origin_country": p.origin_country or "korea",
+                "category": category,
+                "category_slug": sanitize_slug(category),
+                "skin_type": skin_type,
+                "skin_concern": skin_concern,
+                "origin_country": p.origin_country or ai_data.get("origin_country", "korea") or "korea",
                 "stock": True,
-                "expiry_date": p.data.get("expiry_date", "Upto 2028"),
+                "expiry_date": p.data.get("expiry_date", ai_data.get("expiry_date", "Upto 2028")),
             },
             "productDetails": {
-                "description": ai_data.get("description", ""),
-                "key_ingredient": ai_data.get("key_ingredient", ""),
-                "how_to_use": ai_data.get("how_to_use", []),
-                "benefits": ai_data.get("benefits", []),
-                "sizes": ai_data.get("sizes", ["1"]),
-                "photos": [p.data.get("card_photo", "https://cdn.tokbd.shop/logo/tok-logo.jpg")],
+                "description": description,
+                "key_ingredient": key_ingredient,
+                "how_to_use": how_to_use,
+                "benefits": benefits,
+                "sizes": sizes,
+                "photos": [card_photo],
             },
         }
     else:
+        brand = product.get("brand", "") or ai_data.get("brand", "") or _extract_brand(product.get("name", ""))
+        category = product.get("category", "") or ai_data.get("category", "") or "Skincare"
+        skin_type = product.get("skin_type", "") or ai_data.get("skin_type", "All") or "All"
+        skin_concern = product.get("skin_concern", "") or ai_data.get("skin_concern", "All") or "All"
+        if isinstance(skin_type, list):
+            skin_type = ", ".join(skin_type)
+        if isinstance(skin_concern, list):
+            skin_concern = ", ".join(skin_concern)
+        card_photo = product.get("card_photo", "https://cdn.tokbd.shop/logo/tok-logo.jpg")
         return {
             "products": {
                 "name": product.get("name", ""),
                 "slug": sanitize_slug(product.get("name", "")),
-                "brand": product.get("brand", ""),
-                "brand_slug": sanitize_slug(product.get("brand", "")),
-                "card_photo": product.get("card_photo", ""),
-                "img": product.get("img", ""),
+                "brand": brand,
+                "brand_slug": sanitize_slug(brand),
+                "card_photo": card_photo,
+                "img": product.get("img", card_photo),
                 "price": product.get("price", "0"),
                 "origin_price": product.get("origin_price", ""),
-                "category": product.get("category", ""),
-                "category_slug": sanitize_slug(product.get("category", "")),
-                "skin_type": product.get("skin_type", ""),
-                "skin_concern": product.get("skin_concern", ""),
-                "origin_country": product.get("origin_country", "korea"),
+                "category": category,
+                "category_slug": sanitize_slug(category),
+                "skin_type": skin_type,
+                "skin_concern": skin_concern,
+                "origin_country": product.get("origin_country", ai_data.get("origin_country", "korea")) or "korea",
                 "stock": True,
-                "expiry_date": product.get("expiry_date", "Upto 2028"),
+                "expiry_date": product.get("expiry_date", ai_data.get("expiry_date", "Upto 2028")),
             },
             "productDetails": {
-                "description": ai_data.get("description", ""),
-                "key_ingredient": ai_data.get("key_ingredient", ""),
-                "how_to_use": ai_data.get("how_to_use", []),
-                "benefits": ai_data.get("benefits", []),
-                "sizes": ai_data.get("sizes", ["1"]),
-                "photos": [product.get("card_photo", "https://cdn.tokbd.shop/logo/tok-logo.jpg")],
+                "description": description,
+                "key_ingredient": key_ingredient,
+                "how_to_use": how_to_use,
+                "benefits": benefits,
+                "sizes": sizes,
+                "photos": [card_photo],
             },
         }
 
@@ -214,14 +258,71 @@ Production URLs:
     def show_config_screen(self):
         """Display configuration options."""
         print_header("Configuration")
-        print("""
+        print(f"""
 Configuration Options:
   - Email (for OTP): monirhasnan@gmail.com
   - Excel File: (browse to select)
-  - Skip Images: false
-  - Skip AI: false
-  - Product Delay: 2 seconds
+  - Skip Images: {config.SKIP_IMAGES}
+  - Skip AI: {config.SKIP_AI}
+  - Product Delay: {config.PRODUCT_DELAY} seconds
+  - Image Search Region: {config.IMAGE_SEARCH_REGION}
         """)
+
+    def show_region_selection(self):
+        """Allow user to select the image search region/location."""
+        print_header("Image Search Location/Region")
+        print(f"Current Region: {config.IMAGE_SEARCH_REGION}")
+        print("\nSelect a region/location for product image search:")
+        print("  1. United States (us-en) [Default]")
+        print("  2. Bangladesh (bd-en)")
+        print("  3. India (in-en)")
+        print("  4. Worldwide (wt-wt)")
+        print("  5. Enter custom region code (e.g. gb-en, ca-en)")
+        print("  Press Enter to keep current")
+        
+        choice = get_user_input("Enter choice (1-5):", "")
+        if choice == "1":
+            config.IMAGE_SEARCH_REGION = "us-en"
+            self.save_region_to_env("us-en")
+            print_success("Region set to: United States (us-en)")
+        elif choice == "2":
+            config.IMAGE_SEARCH_REGION = "bd-en"
+            self.save_region_to_env("bd-en")
+            print_success("Region set to: Bangladesh (bd-en)")
+        elif choice == "3":
+            config.IMAGE_SEARCH_REGION = "in-en"
+            self.save_region_to_env("in-en")
+            print_success("Region set to: India (in-en)")
+        elif choice == "4":
+            config.IMAGE_SEARCH_REGION = "wt-wt"
+            self.save_region_to_env("wt-wt")
+            print_success("Region set to: Worldwide (wt-wt)")
+        elif choice == "5":
+            custom = get_user_input("Enter custom region code:", config.IMAGE_SEARCH_REGION)
+            if custom:
+                custom_clean = custom.strip().lower()
+                config.IMAGE_SEARCH_REGION = custom_clean
+                self.save_region_to_env(custom_clean)
+                print_success(f"Region set to: {config.IMAGE_SEARCH_REGION}")
+        else:
+            print(f"Keeping current region: {config.IMAGE_SEARCH_REGION}")
+
+    def save_region_to_env(self, region: str):
+        """Save the selected image search region to the .env file."""
+        env_path = Path(__file__).parent / ".env"
+        if not env_path.exists():
+            env_path = Path.cwd() / ".env"
+        
+        if env_path.exists():
+            try:
+                content = env_path.read_text(encoding="utf-8")
+                if "IMAGE_SEARCH_REGION=" in content:
+                    content = re.sub(r"IMAGE_SEARCH_REGION=.*", f"IMAGE_SEARCH_REGION={region}", content)
+                else:
+                    content = content.rstrip() + f"\n\n# Region/Location for image searches (e.g. us-en, bd-en, wt-wt)\nIMAGE_SEARCH_REGION={region}\n"
+                env_path.write_text(content, encoding="utf-8")
+            except Exception as e:
+                print(f"  [!] Failed to save region to .env: {e}")
 
     def show_excel_selection(self):
         """Select Excel file - auto-detect from .env or look for TOK-CERAVE-CETAPHIL.xlsx"""
@@ -309,11 +410,20 @@ Configuration Options:
                         prefix=product.name,
                     )
                     if downloaded:
-                        product.data["card_photo"] = str(downloaded[0])
-                        product.data["img"] = str(downloaded[0])
-                        print(f"  OK Downloaded and uploaded: {downloaded[0].name}")
+                        # Upload to backend
+                        public_url = upload_image_to_backend(downloaded[0], config.auth_headers)
+                        if public_url:
+                            product.data["card_photo"] = public_url
+                            product.data["img"] = public_url
+                            print(f"  OK Downloaded and uploaded: {public_url}")
+                        else:
+                            print("  WARNING: Failed to upload image, using default logo")
+                            product.data["card_photo"] = "https://cdn.tokbd.shop/logo/tok-logo.jpg"
+                            product.data["img"] = "https://cdn.tokbd.shop/logo/tok-logo.jpg"
                     else:
                         print("  FAILED to download image")
+                        product.data["card_photo"] = "https://cdn.tokbd.shop/logo/tok-logo.jpg"
+                        product.data["img"] = "https://cdn.tokbd.shop/logo/tok-logo.jpg"
                 else:
                     print("  WARNING: No images found")
                     product.data["card_photo"] = "https://cdn.tokbd.shop/logo/tok-logo.jpg"
@@ -351,19 +461,65 @@ Configuration Options:
                 "sizes": ["1"],
             })
 
-            try:
-                response = requests.post(
-                    config.products_api_url,
-                    headers=config.auth_headers,
-                    json=product_data,
-                    timeout=30,
-                )
-                response.raise_for_status()
-                print(f"  OK Posted successfully")
-                self.success_count += 1
-            except Exception as e:
-                print(f"  FAILED: {e}")
-                self.failed_count += 1
+            original_slug = product_data["products"]["slug"]
+            posted = False
+            for attempt in range(1, 5):
+                try:
+                    response = requests.post(
+                        config.products_api_url,
+                        headers=config.auth_headers,
+                        json=product_data,
+                        timeout=30,
+                    )
+                    if response.status_code in [200, 201]:
+                        print(f"  ✓ OK Posted successfully (Attempt {attempt})")
+                        self.success_count += 1
+                        posted = True
+                        break
+                    else:
+                        try:
+                            err_body = response.json()
+                        except:
+                            err_body = response.text[:300]
+                        
+                        error_msg = str(err_body).lower()
+                        is_slug_error = ("slug" in error_msg and ("unique" in error_msg or "constraint" in error_msg or "already exists" in error_msg)) or \
+                                        ("unique constraint failed" in error_msg and "products.slug" in error_msg) or \
+                                        (response.status_code == 500 and "unique" in error_msg and "slug" in error_msg)
+                        
+                        if is_slug_error and attempt < 4:
+                            suffix = f"-{random.randint(100, 999)}"
+                            new_slug = original_slug[:255 - len(suffix)] + suffix
+                            print(f"  ⚠ Slug conflict detected for '{product_data['products']['slug']}'. Retrying with new slug: '{new_slug}' (Attempt {attempt + 1}/4)")
+                            product_data["products"]["slug"] = new_slug
+                            time.sleep(1)
+                            continue
+                        
+                        print(f"  FAILED (HTTP {response.status_code}): {err_body}")
+                        self.failed_count += 1
+                        break
+                except Exception as e:
+                    is_slug_error = False
+                    if hasattr(e, "response") and getattr(e, "response") is not None:
+                        try:
+                            err_body = getattr(e, "response").json()
+                        except:
+                            err_body = getattr(e, "response").text[:300]
+                        error_msg = str(err_body).lower()
+                        is_slug_error = ("slug" in error_msg and ("unique" in error_msg or "constraint" in error_msg or "already exists" in error_msg)) or \
+                                        ("unique constraint failed" in error_msg and "products.slug" in error_msg)
+                    
+                    if is_slug_error and attempt < 4:
+                        suffix = f"-{random.randint(100, 999)}"
+                        new_slug = original_slug[:255 - len(suffix)] + suffix
+                        print(f"  ⚠ Slug conflict detected. Retrying with new slug: '{new_slug}' (Attempt {attempt + 1}/4)")
+                        product_data["products"]["slug"] = new_slug
+                        time.sleep(1)
+                        continue
+                        
+                    print(f"  FAILED: {e}")
+                    self.failed_count += 1
+                    break
 
             # Delay between products
             time.sleep(config.PRODUCT_DELAY)
@@ -395,10 +551,14 @@ class AutoLogin:
         payload = {
             "email": self.email,
         }
+        headers = {
+            "X-Client-Type": "mobile",
+            "Content-Type": "application/json"
+        }
         
         print(f"\n[+] Sending OTP request to: {self.email}")
         try:
-            response = requests.post(url, json=payload, timeout=15)
+            response = requests.post(url, json=payload, headers=headers, timeout=15)
             if response.status_code == 200:
                 print(f"[+] OTP sent! Check your email inbox.")
             elif response.status_code == 429:
@@ -417,10 +577,14 @@ class AutoLogin:
             "email": self.email,
             "otp": otp,
         }
+        headers = {
+            "X-Client-Type": "mobile",
+            "Content-Type": "application/json"
+        }
         
         print(f"\n[+] Logging in with OTP: {otp[:4]}***")
         try:
-            response = requests.post(url, json=payload, timeout=15)
+            response = requests.post(url, json=payload, headers=headers, timeout=15)
             if response.status_code == 429:
                 data = response.json()
                 retry_after = data.get("retryAfter", 60)
@@ -468,6 +632,7 @@ def main():
     ui.show_welcome()
     ui.show_config_screen()
     ui.show_excel_selection()
+    ui.show_region_selection()
     
     # User must login manually (OTP will be sent to monirhasnan@gmail.com)
     ui.show_login_screen()

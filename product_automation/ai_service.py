@@ -150,7 +150,6 @@ def parse_product_data(raw_data: dict[str, Any]) -> dict[str, Any]:
         "expiry_date",
         "description",
         "key_ingredient",
-        "sizes",
     ]
     for field in string_fields:
         if field in raw_data:
@@ -161,7 +160,7 @@ def parse_product_data(raw_data: dict[str, Any]) -> dict[str, Any]:
         result["stock"] = bool(raw_data["stock"])
 
     # Array fields
-    array_fields = ["how_to_use", "benefits", "skin_type", "skin_concern"]
+    array_fields = ["how_to_use", "benefits", "skin_type", "skin_concern", "sizes"]
     for field in array_fields:
         if field in raw_data:
             val = raw_data[field]
