@@ -16,6 +16,7 @@ import time
 import base64
 import io
 import random
+import json
 from pathlib import Path
 from typing import Optional
 
@@ -75,9 +76,68 @@ def _extract_brand(product_name: str) -> str:
     """Extract likely brand name from the first word of a product name."""
     parts = product_name.strip().split()
     if parts:
-        # First word is typically the brand (e.g. "CeraVe", "Cetaphil")
         return parts[0]
     return "Unknown"
+
+
+def _detect_category(product_name: str) -> str:
+    """Detect product category from product name."""
+    name_lower = product_name.lower()
+    
+    # Toners
+    if any(kw in name_lower for kw in ['toner', 'mist', 'essence mist', 'setting spray']):
+        return "Toner"
+    
+    # Serums
+    if any(kw in name_lower for kw in ['serum', 'ampoule', 'ampoule serum', 'concentrate']):
+        return "Serum"
+    
+    # Creams
+    if any(kw in name_lower for kw in ['cream', 'balm', 'barrier cream', 'moisturizer']):
+        return "Cream"
+    
+    # Cleansers
+    if any(kw in name_lower for kw in ['cleanser', 'foam', 'gel cleanser', 'wash', 'cleansing']):
+        return "Cleanser"
+    
+    # Oils
+    if any(kw in name_lower for kw in ['oil', 'face oil', 'serum oil']):
+        return "Oil"
+    
+    # Sunscreens
+    if any(kw in name_lower for kw in ['sunscreen', 'spf', 'sun block', 'sun blocker']):
+        return "Sunscreen"
+    
+    # Masks
+    if any(kw in name_lower for kw in ['mask', 'sheet mask', 'sleeping mask']):
+        return "Mask"
+    
+    # Sprays
+    if any(kw in name_lower for kw in ['spray', 'setting spray', 'mist']):
+        return "Spray"
+    
+    # Pads
+    if any(kw in name_lower for kw in ['pad', 'exfoliating pad', 'toner pad']):
+        return "Pad"
+    
+    # Lip products
+    if any(kw in name_lower for kw in ['lip', 'balm', 'gloss', 'stick']):
+        return "Lip Care"
+    
+    # Eye products
+    if any(kw in name_lower for kw in ['eye', 'cream', 'serum', 'gels', 'balm']):
+        return "Eye Care"
+    
+    # Exfoliants
+    if any(kw in name_lower for kw in ['exfoliat', 'scrub', 'peel', 'acid']):
+        return "Exfoliant"
+    
+    # Masks
+    if any(kw in name_lower for kw in ['mask', 'sheet', 'clay mask']):
+        return "Mask"
+    
+    # Default to Skincare
+    return "Skincare"
 
 
 def format_product_data(product, ai_data: dict) -> dict:
@@ -114,7 +174,7 @@ def format_product_data(product, ai_data: dict) -> dict:
         p = product
         # Derive brand/category: use product fields, then AI data, then extract from name
         brand = p.brand or ai_data.get("brand", "") or _extract_brand(p.name)
-        category = p.category or ai_data.get("category", "") or "Skincare"
+        category = p.category or ai_data.get("category", "") or _detect_category(p.name)
         skin_type = p.skin_type or ai_data.get("skin_type", "All") or "All"
         skin_concern = p.skin_concern or ai_data.get("skin_concern", "All") or "All"
         # Handle skin_type/skin_concern that may be lists from AI
@@ -153,7 +213,7 @@ def format_product_data(product, ai_data: dict) -> dict:
         }
     else:
         brand = product.get("brand", "") or ai_data.get("brand", "") or _extract_brand(product.get("name", ""))
-        category = product.get("category", "") or ai_data.get("category", "") or "Skincare"
+        category = product.get("category", "") or ai_data.get("category", "") or _detect_category(product.get("name", ""))
         skin_type = product.get("skin_type", "") or ai_data.get("skin_type", "All") or "All"
         skin_concern = product.get("skin_concern", "") or ai_data.get("skin_concern", "All") or "All"
         if isinstance(skin_type, list):
@@ -239,6 +299,7 @@ class ProductAutomationUI:
         self.products: list = []
         self.success_count = 0
         self.failed_count = 0
+        self.failed_products: list[dict] = []
 
     def show_welcome(self):
         """Display welcome message."""
@@ -404,10 +465,15 @@ Configuration Options:
 
                 if image_urls:
                     print(f"  Found {len(image_urls)} image(s)")
+                    
+                    # Extract name and price from the clicked thumbnail
+                    product_name = product.name
+                    product_price = str(product.price) if product.price else "0"
+                    
                     downloaded = download_images(
                         image_urls,
                         Path(config.DOWNLOAD_DIR),
-                        prefix=product.name,
+                        prefix=f"{product_name}_{product_price}",
                     )
                     if downloaded:
                         # Upload to backend
@@ -524,8 +590,30 @@ Configuration Options:
             # Delay between products
             time.sleep(config.PRODUCT_DELAY)
 
+            # Track failed products
+            if not posted:
+                self.failed_products.append({
+                    "name": product.name,
+                    "price": product.price,
+                    "error": f"Failed after {attempt} attempts"
+                })
+
         # Summary
         self.show_summary()
+        self.save_failed_products()
+
+    def save_failed_products(self):
+        """Save failed products to a JSON file."""
+        if not self.failed_products:
+            return
+        
+        output_file = Path(__file__).parent / "failed_products.json"
+        try:
+            with open(output_file, "w", encoding="utf-8") as f:
+                json.dump(self.failed_products, f, indent=2, ensure_ascii=False)
+            print(f"\n[!] Saved {len(self.failed_products)} failed products to: {output_file}")
+        except Exception as e:
+            print(f"\n[!] Failed to save failed products: {e}")
 
     def show_summary(self):
         """Display final summary."""
