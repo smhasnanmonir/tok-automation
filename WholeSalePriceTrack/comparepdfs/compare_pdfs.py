@@ -663,19 +663,65 @@ def generate_all_comparisons(pdf_dir='WholeSalePriceTrack/pdfs', output_dir='res
     return index_data
 
 
+def compare_direct_file_paths(old_pdf_path, new_pdf_path, output_json='results/comparison_result.json'):
+    """
+    Compare two PDF files by their direct file paths (not from directory)
+    This is a convenience wrapper around compare_pdfs for local file paths
+    """
+    # Validate file paths
+    old_path = Path(old_pdf_path)
+    new_path = Path(new_pdf_path)
+    
+    if not old_path.exists():
+        print(f"ERROR: Old PDF not found: {old_pdf_path}")
+        sys.exit(1)
+    
+    if not new_path.exists():
+        print(f"ERROR: New PDF not found: {new_pdf_path}")
+        sys.exit(1)
+    
+    # Ensure output directory exists
+    Path(output_json).parent.mkdir(parents=True, exist_ok=True)
+    
+    # Run the comparison
+    print("="*80)
+    print("PDF COMPARISON (Local Files)")
+    print("="*80)
+    print(f"\nOld PDF: {old_pdf_path}")
+    print(f"New PDF: {new_pdf_path}")
+    print(f"Output: {output_json}")
+    print("="*80)
+    
+    return compare_pdfs(old_pdf_path, new_pdf_path, output_json)
+
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage:")
-        print("  python compare_pdfs.py compare <old_pdf> <new_pdf>  - Compare two specific PDFs")
-        print("  python compare_pdfs.py list                          - List all available PDFs")
-        print("  python compare_pdfs.py generate-weeks                - Generate available_weeks.json")
-        print("  python compare_pdfs.py generate-all                  - Generate all comparison files")
-        print("  python compare_pdfs.py pdf [json_file]               - Generate PDF report from JSON")
+        print("  python compare_pdfs.py direct <old_pdf> <new_pdf>              - Compare two local PDF files")
+        print("  python compare_pdfs.py compare <old_pdf> <new_pdf>             - Compare two specific PDFs (legacy)")
+        print("  python compare_pdfs.py list                                    - List all available PDFs")
+        print("  python compare_pdfs.py generate-weeks                          - Generate available_weeks.json")
+        print("  python compare_pdfs.py generate-all                            - Generate all comparison files")
+        print("  python compare_pdfs.py pdf [json_file]                         - Generate PDF report from JSON")
+        print("\nExamples:")
+        print("  python compare_pdfs.py direct \"pdfs/old.pdf\" \"pdfs/new.pdf\"")
+        print("  python compare_pdfs.py direct \"C:/Downloads/old.pdf\" \"C:/Downloads/new.pdf\"")
         sys.exit(1)
 
     command = sys.argv[1]
 
-    if command == "compare":
+    if command == "direct":
+        # NEW: Direct local file comparison
+        if len(sys.argv) != 4:
+            print("Usage: python compare_pdfs.py direct <old_pdf> <new_pdf>")
+            print("  Example: python compare_pdfs.py direct \"pdfs/old.pdf\" \"pdfs/new.pdf\"")
+            sys.exit(1)
+        old_pdf = sys.argv[2]
+        new_pdf = sys.argv[3]
+        compare_direct_file_paths(old_pdf, new_pdf)
+
+    elif command == "compare":
         if len(sys.argv) != 4:
             print("Usage: python compare_pdfs.py compare <old_pdf> <new_pdf>")
             sys.exit(1)
@@ -707,5 +753,5 @@ if __name__ == "__main__":
 
     else:
         print(f"Unknown command: {command}")
-        print("Use: compare, list, generate-weeks, generate-all, or pdf")
+        print("Use: direct, compare, list, generate-weeks, generate-all, or pdf")
         sys.exit(1)
