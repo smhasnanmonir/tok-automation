@@ -64,7 +64,10 @@ document.addEventListener('DOMContentLoaded', () => {
         renderGrid('gridDecrease', data.price_decreased_products, 'decrease');
         renderGrid('gridStockout', data.stock_out_products, 'stockout');
 
-        // 4. Setup Search
+        // 4. Setup Collapsible
+        setupCollapsible();
+
+        // 5. Setup Search
         setupSearch();
     }
 
@@ -133,6 +136,65 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function toggleSection(section) {
+        if (section.classList.contains('collapsed')) {
+            expandSection(section);
+        } else {
+            collapseSection(section);
+        }
+    }
+
+    function expandSection(section) {
+        section.classList.remove('collapsed');
+        const header = section.querySelector('.section-header');
+        const icon = section.querySelector('.collapse-icon');
+        if (header) header.setAttribute('aria-expanded', 'true');
+        if (icon) icon.textContent = '▼';
+    }
+
+    function collapseSection(section) {
+        section.classList.add('collapsed');
+        const header = section.querySelector('.section-header');
+        const icon = section.querySelector('.collapse-icon');
+        if (header) header.setAttribute('aria-expanded', 'false');
+        if (icon) icon.textContent = '▶';
+    }
+
+    function setupCollapsible() {
+        const headers = document.querySelectorAll('.collapsible .section-header');
+        const collapseAllBtn = document.getElementById('collapseAllBtn');
+
+        headers.forEach(header => {
+            header.addEventListener('click', () => {
+                const section = header.closest('.collapsible');
+                toggleSection(section);
+            });
+
+            header.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    const section = header.closest('.collapsible');
+                    toggleSection(section);
+                }
+            });
+        });
+
+        collapseAllBtn.addEventListener('click', () => {
+            const allSections = document.querySelectorAll('.collapsible');
+            const anyExpanded = Array.from(allSections).some(s => !s.classList.contains('collapsed'));
+
+            allSections.forEach(section => {
+                if (anyExpanded) {
+                    collapseSection(section);
+                } else {
+                    expandSection(section);
+                }
+            });
+
+            collapseAllBtn.textContent = anyExpanded ? 'Expand All' : 'Collapse All';
+        });
+    }
+
     function setupSearch() {
         const searchInput = document.getElementById('searchInput');
         const clearBtn = document.getElementById('clearSearch');
@@ -181,13 +243,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // Update section empty states
+            // Update section empty states and auto-expand if searching
             document.querySelectorAll('.section').forEach(section => {
                 const grid = section.querySelector('.product-grid');
                 if (!grid) return;
                 const visibleCards = grid.querySelectorAll('.product-card:not(.search-hidden)');
                 section.classList.toggle('search-empty', visibleCards.length === 0 && terms.length > 0);
+
+                if (terms.length > 0 && visibleCards.length > 0 && section.classList.contains('collapsible') && section.classList.contains('collapsed')) {
+                    expandSection(section);
+                }
             });
+
+            // Collapse all sections if search is cleared
+            if (terms.length === 0) {
+                const collapseAllBtn = document.getElementById('collapseAllBtn');
+                if (collapseAllBtn) collapseAllBtn.textContent = 'Collapse All';
+            }
 
             // Update search info
             if (terms.length > 0) {

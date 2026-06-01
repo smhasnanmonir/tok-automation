@@ -80,35 +80,59 @@
                 </div>
             </div>
 
+            <!-- Collapse All Bar -->
+            <div class="collapse-all-bar">
+                <button class="btn-collapse-all" id="collapseAllBtn">Collapse All</button>
+            </div>
+
             <!-- Newly Added Section -->
-            <section class="section" id="sectionNew">
-                <div class="section-header">
-                    <h2>Newly Added Products</h2>
-                    <span class="count-bubble" id="bubbleNew">0</span>
+            <section class="section collapsible" id="sectionNew">
+                <div class="section-header" role="button" tabindex="0" aria-expanded="true">
+                    <div class="section-header-left">
+                        <span class="collapse-icon">▼</span>
+                        <h2>Newly Added Products</h2>
+                    </div>
+                    <div class="section-header-right">
+                        <span class="count-bubble" id="bubbleNew">0</span>
+                    </div>
                 </div>
-                <div class="product-grid" id="gridNew"></div>
+                <div class="collapsible-body">
+                    <div class="product-grid" id="gridNew"></div>
+                </div>
             </section>
 
             <!-- Price Changes Section -->
-            <section class="section">
-                <div class="section-header">
-                    <h2>Price Changes</h2>
+            <section class="section collapsible" id="sectionPriceChanges">
+                <div class="section-header" role="button" tabindex="0" aria-expanded="true">
+                    <div class="section-header-left">
+                        <span class="collapse-icon">▼</span>
+                        <h2>Price Changes</h2>
+                    </div>
+                    <div class="section-header-right"></div>
                 </div>
+                <div class="collapsible-body">
+                    <div class="sub-section-header increase">Price Increases 📈</div>
+                    <div class="product-grid" id="gridIncrease" style="margin-bottom: 2rem;"></div>
 
-                <h3 style="margin-bottom: 1rem; color: var(--danger);">Price Increases 📈</h3>
-                <div class="product-grid" id="gridIncrease" style="margin-bottom: 2rem;"></div>
-
-                <h3 style="margin-bottom: 1rem; color: var(--success);">Price Decreases 📉</h3>
-                <div class="product-grid" id="gridDecrease"></div>
+                    <div class="sub-section-header decrease">Price Decreases 📉</div>
+                    <div class="product-grid" id="gridDecrease"></div>
+                </div>
             </section>
 
             <!-- Stock Out Section -->
-            <section class="section">
-                <div class="section-header">
-                    <h2>Stock Out Products</h2>
-                    <span class="count-bubble" id="bubbleStockout">0</span>
+            <section class="section collapsible" id="sectionStockout">
+                <div class="section-header" role="button" tabindex="0" aria-expanded="true">
+                    <div class="section-header-left">
+                        <span class="collapse-icon">▼</span>
+                        <h2>Stock Out Products</h2>
+                    </div>
+                    <div class="section-header-right">
+                        <span class="count-bubble" id="bubbleStockout">0</span>
+                    </div>
                 </div>
-                <div class="product-grid" id="gridStockout"></div>
+                <div class="collapsible-body">
+                    <div class="product-grid" id="gridStockout"></div>
+                </div>
             </section>
         </main>
 
