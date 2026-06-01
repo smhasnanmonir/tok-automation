@@ -3,7 +3,11 @@ PDF COMPARISON SUMMARY
 
 Old PDF: WholeSalePriceTrack/pdfs/Bulk Wholesale Price-(24-4-2026).pdf (894 products)
 New PDF: WholeSalePriceTrack/pdfs/Bulk Wholesale Price-(01-05-2026).pdf (947 products)
+<<<<<<< HEAD
 Comparison Date: 2026-05-23 17:42:41
+=======
+Comparison Date: 2026-06-01 10:50:31
+>>>>>>> dev
 
 Newly Added: 90 products
 Price Increased: 5 products

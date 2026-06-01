@@ -2,7 +2,11 @@
   "metadata": {
     "old_pdf": "WholeSalePriceTrack/pdfs/Bulk Wholesale Price-(24-4-2026).pdf",
     "new_pdf": "WholeSalePriceTrack/pdfs/Bulk Wholesale Price-(01-05-2026).pdf",
+<<<<<<< HEAD
     "comparison_date": "2026-05-23T17:42:41.429450",
+=======
+    "comparison_date": "2026-06-01T10:50:31.933848",
+>>>>>>> dev
     "old_pdf_total_products": 894,
     "new_pdf_total_products": 947,
     "summary": {

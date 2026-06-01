@@ -1,8 +1,6 @@
 import pdfplumber
-import pandas as pd
 import json
 import sys
-import os
 from datetime import datetime
 from pathlib import Path
 import re
@@ -85,55 +83,49 @@ def extract_products_from_pdf(pdf_path):
                         if not table or len(table) < 2:
                             continue
 
-                        df = pd.DataFrame(table[1:], columns=table[0])
+                        headers = table[0]
+                        data_rows = table[1:]
 
-                        # Find columns - support multiple PDF formats
-                        brand_col = None
-                        product_col = None
-                        normal_price_col = None
-                        wholesale_price_col = None
+                        brand_idx = None
+                        product_idx = None
+                        normal_price_idx = None
+                        wholesale_price_idx = None
 
-                        for col in df.columns:
+                        for idx, col in enumerate(headers):
+                            if col is None:
+                                continue
                             col_lower = str(col).lower()
                             if 'brand' in col_lower:
-                                brand_col = col
+                                brand_idx = idx
                             elif 'product' in col_lower and 'name' in col_lower:
-                                product_col = col
+                                product_idx = idx
                             elif 'normal' in col_lower and 'wholesale' in col_lower:
-                                # Old format: "Normal Wholesale Price"
-                                normal_price_col = col
+                                normal_price_idx = idx
                             elif 'wholesale' in col_lower and 'you' in col_lower:
-                                # Old format: "Wholesale Price For You"
-                                wholesale_price_col = col
+                                wholesale_price_idx = idx
                             elif 'bulk' in col_lower and 'wholesale' in col_lower:
-                                # New format: "Bulk Wholesale Price"
-                                wholesale_price_col = col
+                                wholesale_price_idx = idx
                             elif 'wholesale' in col_lower and 'price' in col_lower:
-                                # Generic: "Wholesale Price" (catch-all if no specific match)
-                                if not wholesale_price_col:
-                                    wholesale_price_col = col
+                                if wholesale_price_idx is None:
+                                    wholesale_price_idx = idx
 
-                        # Extract products
-                        if brand_col and product_col:
-                            for _, row in df.iterrows():
-                                brand = str(row.get(brand_col, '')).strip()
-                                product_name = str(row.get(product_col, '')).strip()
+                        if brand_idx is not None and product_idx is not None:
+                            for row in data_rows:
+                                if not row:
+                                    continue
+                                brand = str(row[brand_idx]).strip() if brand_idx < len(row) and row[brand_idx] else ''
+                                product_name = str(row[product_idx]).strip() if product_idx < len(row) and row[product_idx] else ''
 
                                 if brand and product_name and brand != 'nan' and product_name != 'nan':
-                                    normal_price = str(row.get(normal_price_col, '')).strip() if normal_price_col else ''
-                                    wholesale_price = str(row.get(wholesale_price_col, '')).strip() if wholesale_price_col else ''
+                                    normal_price = str(row[normal_price_idx]).strip() if normal_price_idx is not None and normal_price_idx < len(row) and row[normal_price_idx] else ''
+                                    wholesale_price = str(row[wholesale_price_idx]).strip() if wholesale_price_idx is not None and wholesale_price_idx < len(row) and row[wholesale_price_idx] else ''
 
-                                    # If there's only one price column, use it as the "for you" price
                                     if not wholesale_price and not normal_price:
-                                        # No price columns found at all
                                         pass
                                     elif not wholesale_price and normal_price:
-                                        # Only normal price found, use it as both
                                         wholesale_price = normal_price
                                         normal_price = ''
                                     elif wholesale_price and not normal_price:
-                                        # Only one wholesale price column found (new format)
-                                        # Keep wholesale_price as the "for you" price
                                         pass
 
                                     product = {
@@ -663,19 +655,65 @@ def generate_all_comparisons(pdf_dir='WholeSalePriceTrack/pdfs', output_dir='res
     return index_data
 
 
+def compare_direct_file_paths(old_pdf_path, new_pdf_path, output_json='results/comparison_result.json'):
+    """
+    Compare two PDF files by their direct file paths (not from directory)
+    This is a convenience wrapper around compare_pdfs for local file paths
+    """
+    # Validate file paths
+    old_path = Path(old_pdf_path)
+    new_path = Path(new_pdf_path)
+    
+    if not old_path.exists():
+        print(f"ERROR: Old PDF not found: {old_pdf_path}")
+        sys.exit(1)
+    
+    if not new_path.exists():
+        print(f"ERROR: New PDF not found: {new_pdf_path}")
+        sys.exit(1)
+    
+    # Ensure output directory exists
+    Path(output_json).parent.mkdir(parents=True, exist_ok=True)
+    
+    # Run the comparison
+    print("="*80)
+    print("PDF COMPARISON (Local Files)")
+    print("="*80)
+    print(f"\nOld PDF: {old_pdf_path}")
+    print(f"New PDF: {new_pdf_path}")
+    print(f"Output: {output_json}")
+    print("="*80)
+    
+    return compare_pdfs(old_pdf_path, new_pdf_path, output_json)
+
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage:")
-        print("  python compare_pdfs.py compare <old_pdf> <new_pdf>  - Compare two specific PDFs")
-        print("  python compare_pdfs.py list                          - List all available PDFs")
-        print("  python compare_pdfs.py generate-weeks                - Generate available_weeks.json")
-        print("  python compare_pdfs.py generate-all                  - Generate all comparison files")
-        print("  python compare_pdfs.py pdf [json_file]               - Generate PDF report from JSON")
+        print("  python compare_pdfs.py direct <old_pdf> <new_pdf>              - Compare two local PDF files")
+        print("  python compare_pdfs.py compare <old_pdf> <new_pdf>             - Compare two specific PDFs (legacy)")
+        print("  python compare_pdfs.py list                                    - List all available PDFs")
+        print("  python compare_pdfs.py generate-weeks                          - Generate available_weeks.json")
+        print("  python compare_pdfs.py generate-all                            - Generate all comparison files")
+        print("  python compare_pdfs.py pdf [json_file]                         - Generate PDF report from JSON")
+        print("\nExamples:")
+        print("  python compare_pdfs.py direct \"pdfs/old.pdf\" \"pdfs/new.pdf\"")
+        print("  python compare_pdfs.py direct \"C:/Downloads/old.pdf\" \"C:/Downloads/new.pdf\"")
         sys.exit(1)
 
     command = sys.argv[1]
 
-    if command == "compare":
+    if command == "direct":
+        # NEW: Direct local file comparison
+        if len(sys.argv) != 4:
+            print("Usage: python compare_pdfs.py direct <old_pdf> <new_pdf>")
+            print("  Example: python compare_pdfs.py direct \"pdfs/old.pdf\" \"pdfs/new.pdf\"")
+            sys.exit(1)
+        old_pdf = sys.argv[2]
+        new_pdf = sys.argv[3]
+        compare_direct_file_paths(old_pdf, new_pdf)
+
+    elif command == "compare":
         if len(sys.argv) != 4:
             print("Usage: python compare_pdfs.py compare <old_pdf> <new_pdf>")
             sys.exit(1)
@@ -707,5 +745,5 @@ if __name__ == "__main__":
 
     else:
         print(f"Unknown command: {command}")
-        print("Use: compare, list, generate-weeks, generate-all, or pdf")
+        print("Use: direct, compare, list, generate-weeks, generate-all, or pdf")
         sys.exit(1)

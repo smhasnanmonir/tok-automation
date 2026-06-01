@@ -1,6 +1,51 @@
 {
   "comparisons": [
     {
+<<<<<<< HEAD
+=======
+      "new_date": "01-06-2026",
+      "old_date": "22-05-2026",
+      "filename": "01-06-2026_vs_22-05-2026.json",
+      "path": "results/comparisons/01-06-2026_vs_22-05-2026.json"
+    },
+    {
+      "new_date": "01-06-2026",
+      "old_date": "14-05-2026",
+      "filename": "01-06-2026_vs_14-05-2026.json",
+      "path": "results/comparisons/01-06-2026_vs_14-05-2026.json"
+    },
+    {
+      "new_date": "01-06-2026",
+      "old_date": "01-05-2026",
+      "filename": "01-06-2026_vs_01-05-2026.json",
+      "path": "results/comparisons/01-06-2026_vs_01-05-2026.json"
+    },
+    {
+      "new_date": "01-06-2026",
+      "old_date": "Bulk Wholesale Price-(24-4-2026).pdf",
+      "filename": "01-06-2026_vs_Bulk Wholesale Price-(24-4-2026).pdf.json",
+      "path": "results/comparisons/01-06-2026_vs_Bulk Wholesale Price-(24-4-2026).pdf.json"
+    },
+    {
+      "new_date": "22-05-2026",
+      "old_date": "14-05-2026",
+      "filename": "22-05-2026_vs_14-05-2026.json",
+      "path": "results/comparisons/22-05-2026_vs_14-05-2026.json"
+    },
+    {
+      "new_date": "22-05-2026",
+      "old_date": "01-05-2026",
+      "filename": "22-05-2026_vs_01-05-2026.json",
+      "path": "results/comparisons/22-05-2026_vs_01-05-2026.json"
+    },
+    {
+      "new_date": "22-05-2026",
+      "old_date": "Bulk Wholesale Price-(24-4-2026).pdf",
+      "filename": "22-05-2026_vs_Bulk Wholesale Price-(24-4-2026).pdf.json",
+      "path": "results/comparisons/22-05-2026_vs_Bulk Wholesale Price-(24-4-2026).pdf.json"
+    },
+    {
+>>>>>>> dev
       "new_date": "14-05-2026",
       "old_date": "01-05-2026",
       "filename": "14-05-2026_vs_01-05-2026.json",
@@ -19,5 +64,9 @@
       "path": "results/comparisons/01-05-2026_vs_Bulk Wholesale Price-(24-4-2026).pdf.json"
     }
   ],
+<<<<<<< HEAD
   "generated_at": "2026-05-23T17:42:41.484899"
+=======
+  "generated_at": "2026-06-01T10:50:32.020871"
+>>>>>>> dev
 }
